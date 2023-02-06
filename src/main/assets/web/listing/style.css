@@ -1,0 +1,12 @@
+.optionButton {
+    background-color: silver;
+    border-color: gray;
+    border-width: 1px;
+    border-style: solid;
+    text-align: center;
+    width: 100%;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    margin-top: 15px;
+    font-size: large;
+}

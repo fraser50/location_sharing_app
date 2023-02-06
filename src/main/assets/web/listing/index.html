@@ -1,12 +1,17 @@
 <html>
     <head>
+        <link rel="stylesheet" href="style.css">
+        <script src="ui.js"></script>
         <script>
-            function work() {
-                document.write("JS Test");
+            function page_load() {
+                var content = document.getElementById("content");
+
+                renderGroups(content, testgroups);
             }
         </script>
     </head>
-    <body onload="work()">
+    <body onload="page_load()">
         <h1>Group Listing</h1>
+        <div id="content"></div>
     </body>
 </html>
