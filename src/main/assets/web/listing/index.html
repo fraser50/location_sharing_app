@@ -6,7 +6,22 @@
             function page_load() {
                 var content = document.getElementById("content");
 
-                renderGroups(content, testgroups);
+                createRequest(sharedData.getAPI(), "/groups", null, function(req) {
+                    var rsp = req.target.response;
+
+                    var decodedResponse = JSON.parse(rsp);
+
+                    if (decodedResponse.status == "success") {
+                        renderGroups(content, decodedResponse.groups);
+
+                    } else {
+                        // TODO: Display error message
+                    }
+
+                }, function(req) {
+                    console.log("error");
+                });
+
             }
         </script>
     </head>

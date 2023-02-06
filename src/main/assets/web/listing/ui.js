@@ -13,22 +13,37 @@ function renderGroups(content, groups) {
     });
 }
 
+// This function creates and sends a request to the server, and uses the provided callbacks for the response
+function createRequest(apiHost, endpoint, payload, responseCallback, errorCallback) {
+    var req = new XMLHttpRequest();
+    req.onerror = errorCallback;
+    req.onload = responseCallback;
+
+    sharedData.loadAuthKey();
+
+    req.open("get", apiHost + endpoint);
+
+    // TODO: Handle post requests
+
+    req.send();
+}
+
 testgroups = [
     {
         groupid: "group1",
         groupname: "Group One",
-        desc: "Decription for Group One"
+        groupdescription: "Decription for Group One"
     },
 
     {
         groupid: "group2",
         groupname: "Group Two",
-        desc: "Decription for Group Two"
+        groupdescription: "Decription for Group Two"
     },
 
     {
         groupid: "group3",
         groupname: "Group Three",
-        desc: "Decription for Group Three"
+        groupdescription: "Decription for Group Three"
     },
 ];
