@@ -7,9 +7,32 @@ function renderGroups(content, groups) {
         groupButton.className = "optionButton";
 
         groupButton.innerText = group.groupname;
-        // TODO: Add onclick event
+        groupButton.onclick = function() {
+            createRequest(sharedData.getAPI(), "/groups/" + group.groupid, null, function(req) {
+                var rsp = req.target.response;
+
+                var decodedResponse = JSON.parse(rsp);
+
+                if (decodedResponse.status == "success") {
+                    renderMembers(content, decodedResponse.members, null);
+                }
+            });
+        };
 
         content.appendChild(groupButton);
+    });
+}
+
+function renderMembers(content, members, me) {
+    content.innerHTML = "";
+
+    members.forEach(function(member) {
+        var memberButton = document.createElement("button");
+        memberButton.className = "optionButton";
+
+        memberButton.innerText = member.nickname;
+
+        content.appendChild(memberButton);
     });
 }
 
