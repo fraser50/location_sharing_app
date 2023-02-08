@@ -6,6 +6,16 @@ function renderGroups(content, groups) {
     heading.innerText = "Groups";
     content.appendChild(heading);
 
+    var createGroupButton = document.createElement("button");
+    createGroupButton.innerText = "+";
+    createGroupButton.className = "createButton";
+
+    createGroupButton.onclick = function() {
+        renderGroupAddOptions(content);
+    };
+
+    content.appendChild(createGroupButton);
+
     groups.forEach(function(group) {
         var groupButton = document.createElement("button");
         groupButton.className = "optionButton";
@@ -73,6 +83,70 @@ function renderMembers(content, group, members) {
 
         content.appendChild(memberButton);
     });
+}
+
+function renderGroupAddOptions(content) {
+    content.innerHTML = "";
+
+    createBackButton(content, function() {
+        loadGroups(content);
+    });
+
+    var heading = document.createElement("h2");
+    heading.innerText = "Add Group";
+    content.appendChild(heading);
+
+    var createNewButton = document.createElement("button");
+    createNewButton.className = "optionButton";
+    createNewButton.innerText = "Create New Group";
+
+    createNewButton.onclick = function() {
+        renderCreateGroupForm(content);
+    };
+
+    // This button will be used in the future for opening up the phone camera to scan a QR code from another user
+    var joinButton = document.createElement("button");
+    joinButton.className = "optionButton";
+    joinButton.innerText = "Join Group using Camera";
+
+    content.appendChild(createNewButton);
+    content.appendChild(joinButton);
+}
+
+function renderCreateGroupForm(content) {
+    content.innerHTML = "";
+
+    createBackButton(content, function() {
+        loadGroups(content);
+    });
+
+    var groupNameText = document.createElement("p");
+    groupNameText.innerText = "Group Name";
+    groupNameText.style = "font-size: medium";
+
+    var groupNameInput = document.createElement("input");
+    groupNameInput.className = "inputField";
+    groupNameInput.type = "text";
+
+    var groupDescriptionText = document.createElement("p");
+    groupDescriptionText.innerText = "Group Description";
+    groupDescriptionText.style = "font-size: medium";
+
+    var groupDescriptionInput = document.createElement("textarea");
+    //groupNameInput.className = "inputField";
+    //groupNameInput.type = "text";
+
+    var submitButton = document.createElement("button");
+    submitButton.className = "optionButton";
+    submitButton.innerText = "Create Group";
+
+    content.appendChild(groupNameText);
+    content.appendChild(groupNameInput);
+
+    content.appendChild(groupDescriptionText);
+    content.appendChild(groupDescriptionInput);
+
+    content.appendChild(submitButton);
 }
 
 // This function creates and sends a request to the server, and uses the provided callbacks for the response
