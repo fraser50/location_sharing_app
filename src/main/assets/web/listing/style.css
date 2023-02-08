@@ -30,3 +30,22 @@ main {
     overflow-y: scroll;
     height: calc(100vh - 325px);
 }
+
+h2 {
+    text-align: center;
+    width: auto;
+    font-weight: lighter;
+}
+
+.backButton {
+    background-color: red;
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: medium;
+    width: 50%;
+    margin: auto;
+    border-radius: 15px;
+}

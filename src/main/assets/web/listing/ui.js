@@ -2,6 +2,10 @@ function renderGroups(content, groups) {
     // Clear out any content that is already there
     content.innerHTML = "";
 
+    var heading = document.createElement("h2");
+    heading.innerText = "Groups";
+    content.appendChild(heading);
+
     groups.forEach(function(group) {
         var groupButton = document.createElement("button");
         groupButton.className = "optionButton";
@@ -14,7 +18,7 @@ function renderGroups(content, groups) {
                 var decodedResponse = JSON.parse(rsp);
 
                 if (decodedResponse.status == "success") {
-                    renderMembers(content, decodedResponse.members, null);
+                    renderMembers(content, group, decodedResponse.members);
                 }
             });
         };
@@ -23,8 +27,43 @@ function renderGroups(content, groups) {
     });
 }
 
-function renderMembers(content, members, me) {
+function loadGroups(content) {
+    createRequest(sharedData.getAPI(), "/groups", null, function(req) {
+        var rsp = req.target.response;
+
+        var decodedResponse = JSON.parse(rsp);
+
+        if (decodedResponse.status == "success") {
+            renderGroups(content, decodedResponse.groups);
+
+        } else {
+            // TODO: Display error message
+        }
+
+    }, function(req) {
+        console.log("error");
+    });
+}
+
+function createBackButton(place, onclick) {
+    var backButton = document.createElement("button");
+    backButton.className = "backButton";
+    backButton.innerText = "Back"
+    backButton.onclick = onclick;
+
+    place.appendChild(backButton);
+}
+
+function renderMembers(content, group, members) {
     content.innerHTML = "";
+
+    createBackButton(content, function() {
+        loadGroups(content);
+    });
+
+    var heading = document.createElement("h2");
+    heading.innerText = "Members - " + group.groupname;
+    content.appendChild(heading);
 
     members.forEach(function(member) {
         var memberButton = document.createElement("button");
