@@ -140,6 +140,29 @@ function renderCreateGroupForm(content) {
     submitButton.className = "optionButton";
     submitButton.innerText = "Create Group";
 
+    submitButton.onclick = function() {
+        createRequest(sharedData.getAPI(), "/creategroup", {
+            name: groupNameInput.value,
+            desc: groupDescriptionInput.value
+
+        }, function(req) {
+            var rsp = req.target.response;
+            var decodedResponse = JSON.parse(rsp);
+
+            if (decodedResponse.status == "success") {
+                loadGroups(content);
+
+            } else {
+                alert("Server-side error");
+                loadGroups(content);
+            }
+
+        }, function(err) {
+            alert("Failed to create group");
+            loadGroups(content);
+        });
+    };
+
     content.appendChild(groupNameText);
     content.appendChild(groupNameInput);
 
@@ -157,11 +180,13 @@ function createRequest(apiHost, endpoint, payload, responseCallback, errorCallba
 
     sharedData.loadAuthKey();
 
-    req.open("get", apiHost + endpoint);
+    req.open(payload == null ? "get" : "post", apiHost + endpoint);
 
-    // TODO: Handle post requests
+    if (payload != null) {
+        req.setRequestHeader("Content-Type", "application/json");
+    }
 
-    req.send();
+    req.send(payload == null ? null : JSON.stringify(payload));
 }
 
 testgroups = [
