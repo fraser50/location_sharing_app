@@ -3,6 +3,7 @@
         <!-- https://www.w3docs.com/snippets/css/how-to-disable-zoom-on-a-mobile-web-page-using-html-and-css.html -->
         <meta name="viewport" content="width=device-width, user-scalable=no">
         <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="leaflet/leaflet.css">
         <script src="ui.js"></script>
         <script>
             function page_load() {
@@ -10,8 +11,28 @@
 
                 loadGroups(content);
 
+                var map = L.map('map').setView([51.505, -0.09], 13);
+
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                var userMarker = L.marker([0, 0]);
+                userMarker.addTo(map);
+
+
+                setInterval(function() {
+                    var latitude = sharedData.getLatitude();
+                    var longitude = sharedData.getLongitude();
+
+                    userMarker.setLatLng(L.latLng(latitude, longitude));
+                }, 1000);
+
             }
         </script>
+
+        <script src="leaflet/leaflet.js"></script>
     </head>
     <body onload="page_load()">
         <main style="width: 100%; height:100%">
