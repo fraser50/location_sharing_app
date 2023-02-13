@@ -4,6 +4,22 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Permissions needed for location tracking -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+
+    <!-- Camera permission will be needed for scanning QR code -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Need to be able to let the user know when they leave and enter the tracking zone,
+    and notify them that they're still being tracked -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Permissions for foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
