@@ -9,7 +9,14 @@
             function page_load() {
                 var content = document.getElementById("content");
 
-                loadGroups(content);
+                if (sharedData.getAuthKey() == "") {
+                    createAuthForm(content);
+                    document.getElementById("mapHolder").className = "hiddenDiv";
+                    document.getElementById("content").className = "contentFullHeight";
+
+                } else {
+                    loadGroups(content);
+                }
 
                 var map = L.map('map').setView([51.505, -0.09], 13);
 
@@ -40,7 +47,7 @@
                 <!-- Map Placeholder -->
                 <center><div id="map"></div></center>
             </div>
-            <div id="content"></div>
+            <div id="content" class="content"></div>
         </main>
     </body>
 </html>

@@ -18,6 +18,14 @@ import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Scanner;
+
 public class MainActivity extends AppCompatActivity {
 
     public class SharedData {
@@ -25,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             setupRequestLocation();
         }
         // This key is for testing on my local machine.
-        private String authKey = "59aadb01555247e9ebcbf78c8ce3f6a08b696f0fe39e8861afbc371055b7db1b";
+        private String authKey = "";
         private double latitude = 0;
         private double longitude = 0;
 
@@ -50,6 +58,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void saveAuthKey() throws IOException {
+            File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
+
+            FileWriter writer = new FileWriter(f);
+
+            writer.write(authKey);
+
+            writer.close();
+        }
+
+        public void loadAuthKeyFromFile() throws FileNotFoundException {
+            File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
+            if (f.exists()) {
+                // TODO: Add proper error handling
+                Scanner scan = new Scanner(f);
+
+                authKey = scan.next();
+
+                scan.close();
+            }
+        }
+
+        @JavascriptInterface
         public double getLatitude() {
             return latitude;
         }
@@ -64,13 +95,13 @@ public class MainActivity extends AppCompatActivity {
         public void setupRequestLocation() {
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-            manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
-                }
-            });
+            //manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
+            //    @Override
+            //    public void onLocationChanged(@NonNull Location location) {
+            //        latitude = location.getLatitude();
+            //        longitude = location.getLongitude();
+            //    }
+            //});
         }
     }
 
@@ -84,6 +115,11 @@ public class MainActivity extends AppCompatActivity {
         startService(fgService);
 
         SharedData data = new SharedData();
+        try {
+            data.loadAuthKeyFromFile();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         WebView optionsView = findViewById(R.id.options);
 

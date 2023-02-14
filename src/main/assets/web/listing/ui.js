@@ -172,6 +172,73 @@ function renderCreateGroupForm(content) {
     content.appendChild(submitButton);
 }
 
+function createAuthForm(content) {
+    content.innerHTML = "";
+
+    var heading = document.createElement("h2");
+    heading.innerText = "Login";
+
+    var qrCodeSignInButton = document.createElement("button");
+    qrCodeSignInButton.className = "optionButton";
+    qrCodeSignInButton.innerText = "Sign in using QR code";
+
+    var alternativeHeading = document.createElement("h3");
+    alternativeHeading.innerText = "Alternatively, sign in by typing in login code";
+
+    var authText = document.createElement("p");
+    authText.innerText = "Login Key";
+    authText.style = "font-size: medium";
+
+    var authInput = document.createElement("input");
+    authInput.className = "inputFieldFull";
+    authInput.type = "text";
+    authInput.style = "margin-bottom: 15px;";
+
+    var submitLoginButton = document.createElement("button");
+    submitLoginButton.className = "optionButton";
+    submitLoginButton.innerText = "Log In";
+
+    var errorMsg = document.createElement("h3");
+    errorMsg.className = "hiddenDiv";
+
+    submitLoginButton.onclick = function() {
+        sharedData.setAuthKey(authInput.value);
+
+        createRequest(sharedData.getAPI(), "/", null, function(req) {
+            var rsp = req.target.response;
+            var decodedResponse = JSON.parse(rsp);
+
+            if (decodedResponse.status == "failure") {
+                errorMsg.innerHTML = "Login Error:<br>";
+                errorMsg.innerHTML += decodedResponse.reason;
+                errorMsg.className = "red";
+
+            } else {
+                document.getElementById("mapHolder").className = "";
+                content.className = "";
+                loadGroups(content);
+                sharedData.saveAuthKey();
+            }
+
+        }, function() {
+            errorMsg.innerText = "Unknown Error";
+            errorMsg.className = "red";
+        });
+    };
+
+    content.appendChild(heading);
+
+    content.appendChild(qrCodeSignInButton);
+
+    content.appendChild(alternativeHeading);
+
+    content.appendChild(authText);
+    content.appendChild(authInput);
+
+    content.appendChild(submitLoginButton);
+    content.appendChild(errorMsg);
+}
+
 // This function creates and sends a request to the server, and uses the provided callbacks for the response
 function createRequest(apiHost, endpoint, payload, responseCallback, errorCallback) {
     var req = new XMLHttpRequest();
