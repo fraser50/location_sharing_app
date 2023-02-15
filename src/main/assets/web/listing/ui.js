@@ -181,6 +181,9 @@ function createAuthForm(content) {
     var qrCodeSignInButton = document.createElement("button");
     qrCodeSignInButton.className = "optionButton";
     qrCodeSignInButton.innerText = "Sign in using QR code";
+    qrCodeSignInButton.onclick = function() {
+        sharedData.scanQRCode();
+    };
 
     var alternativeHeading = document.createElement("h3");
     alternativeHeading.innerText = "Alternatively, sign in by typing in login code";

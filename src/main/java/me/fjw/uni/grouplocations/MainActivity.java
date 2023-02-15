@@ -1,9 +1,18 @@
 package me.fjw.uni.grouplocations;
 
+import static androidx.camera.view.CameraController.IMAGE_ANALYSIS;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
+import androidx.camera.view.CameraController;
+import androidx.camera.view.LifecycleCameraController;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
 import androidx.core.location.LocationManagerCompat;
 import androidx.core.os.CancellationSignal;
+import androidx.core.os.ExecutorCompat;
 import androidx.core.util.Consumer;
 
 import android.annotation.SuppressLint;
@@ -14,9 +23,15 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +44,7 @@ import java.util.Scanner;
 public class MainActivity extends AppCompatActivity {
 
     public class SharedData {
+        public MainActivity activity;
         public SharedData() {
             setupRequestLocation();
         }
@@ -103,6 +119,36 @@ public class MainActivity extends AppCompatActivity {
             //    }
             //});
         }
+
+        @JavascriptInterface
+        public void scanQRCode() {
+            BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
+                    .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
+
+            BarcodeScanner scanner = BarcodeScanning.getClient(options);
+
+            LifecycleCameraController camControl = new LifecycleCameraController(getApplicationContext());
+
+            PreviewView preview = findViewById(R.id.cameraPreview);
+
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    camControl.setEnabledUseCases(IMAGE_ANALYSIS);
+                    camControl.bindToLifecycle(activity);
+                    camControl.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(getApplicationContext()), new ImageAnalysis.Analyzer() {
+                        @Override
+                        public void analyze(@NonNull ImageProxy image) {
+
+                        }
+                    });
+                    preview.setVisibility(View.VISIBLE);
+                    preview.setController(camControl);
+                }
+            });
+
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -115,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         startService(fgService);
 
         SharedData data = new SharedData();
+        data.activity = this;
         try {
             data.loadAuthKeyFromFile();
         } catch (FileNotFoundException e) {
