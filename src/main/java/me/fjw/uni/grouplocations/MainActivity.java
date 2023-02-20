@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAPI() {
-            return "http://192.168.1.184:8080";
+            return "https://uni.fjw.me";
         }
 
         @JavascriptInterface
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void loadAuthKey() {
-            CookieManager.getInstance().setCookie(getAPI(), "key=" + authKey);
+            CookieManager.getInstance().setCookie(getAPI(), "key=" + authKey + "; SameSite=None; Secure");
         }
 
         @JavascriptInterface
@@ -122,32 +122,12 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void scanQRCode() {
-            BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
-                    .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
-
-            BarcodeScanner scanner = BarcodeScanning.getClient(options);
-
-            LifecycleCameraController camControl = new LifecycleCameraController(getApplicationContext());
-
-            PreviewView preview = findViewById(R.id.cameraPreview);
-
-
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    camControl.setEnabledUseCases(IMAGE_ANALYSIS);
-                    camControl.bindToLifecycle(activity);
-                    camControl.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(getApplicationContext()), new ImageAnalysis.Analyzer() {
-                        @Override
-                        public void analyze(@NonNull ImageProxy image) {
-
-                        }
-                    });
-                    preview.setVisibility(View.VISIBLE);
-                    preview.setController(camControl);
+                    openQRCode();
                 }
             });
-
         }
     }
 
@@ -168,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
+        WebView.setWebContentsDebuggingEnabled(true);
         WebView optionsView = findViewById(R.id.options);
 
         CookieManager.getInstance().setAcceptThirdPartyCookies(optionsView, true);
@@ -184,5 +165,28 @@ public class MainActivity extends AppCompatActivity {
             Log.d("providers", provider);
         }
 
+    }
+
+    public void openQRCode() {
+        BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
+
+        BarcodeScanner scanner = BarcodeScanning.getClient(options);
+
+        LifecycleCameraController camControl = new LifecycleCameraController(getApplicationContext());
+
+        PreviewView preview = findViewById(R.id.cameraPreview);
+
+        camControl.setEnabledUseCases(IMAGE_ANALYSIS);
+        camControl.bindToLifecycle(this);
+        camControl.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(getApplicationContext()), new ImageAnalysis.Analyzer() {
+            @Override
+            public void analyze(@NonNull ImageProxy image) {
+
+            }
+        });
+        preview.setVisibility(View.VISIBLE);
+        preview.setController(camControl);
+        findViewById(R.id.options).setVisibility(View.INVISIBLE);
     }
 }
