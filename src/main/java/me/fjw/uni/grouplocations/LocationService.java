@@ -1,26 +1,15 @@
 package me.fjw.uni.grouplocations;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Debug;
-import android.os.Handler;
+import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.HttpCookie;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Scanner;
 
 import javax.net.SocketFactory;
@@ -28,7 +17,7 @@ import javax.net.SocketFactory;
 public class LocationService extends Service {
     // This is the thread that runs the background tasks
     private Thread worker;
-    private static final String WS_API = "wss://uni.fjw.me";
+    private static final String WS_API = "wss://localuni.fjw.me";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -69,7 +58,7 @@ public class LocationService extends Service {
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
-                LocationClient client = new LocationClient(u, authKey);
+                LocationClient client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE));
                 Log.d("ws_client", "Connecting to " + WS_API);
                 SocketFactory factory = SocketFactory.getDefault();
                 client.setSocketFactory(factory);

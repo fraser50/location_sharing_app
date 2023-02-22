@@ -65,6 +65,7 @@ function createBackButton(place, onclick) {
 }
 
 function renderMembers(content, group, members) {
+    addMapMarkers(group.groupid);
     content.innerHTML = "";
 
     createBackButton(content, function() {
@@ -257,6 +258,28 @@ function createRequest(apiHost, endpoint, payload, responseCallback, errorCallba
     }
 
     req.send(payload == null ? null : JSON.stringify(payload));
+}
+
+function addMapMarkers(groupid) {
+    createRequest(sharedData.getAPI(), "/groups/" + groupid + "/locations", null, function(req) {
+        var rsp = req.target.response;
+        var decodedResponse = JSON.parse(rsp);
+        if (decodedResponse.status == "success") {
+            markers.forEach((marker => {
+                map.removeLayer(marker);
+            }));
+
+            markers = [];
+
+            decodedResponse.members.forEach((member) => {
+                console.log(member);
+                var marker = L.marker([0, 0]);
+                marker.addTo(map);
+                markers.push(marker);
+            });
+        }
+
+    }, function() {});
 }
 
 testgroups = [

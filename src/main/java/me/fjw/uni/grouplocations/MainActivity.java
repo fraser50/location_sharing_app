@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAPI() {
-            return "https://uni.fjw.me";
+            return "https://localuni.fjw.me";
         }
 
         @JavascriptInterface
@@ -111,13 +111,13 @@ public class MainActivity extends AppCompatActivity {
         public void setupRequestLocation() {
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-            //manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
-            //    @Override
-            //    public void onLocationChanged(@NonNull Location location) {
-            //        latitude = location.getLatitude();
-            //        longitude = location.getLongitude();
-            //    }
-            //});
+            manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
+                @Override
+                public void onLocationChanged(@NonNull Location location) {
+                    latitude = location.getLatitude();
+                    longitude = location.getLongitude();
+                }
+            });
         }
 
         @JavascriptInterface

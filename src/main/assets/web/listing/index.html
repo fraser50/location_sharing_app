@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="leaflet/leaflet.css">
         <script src="ui.js"></script>
         <script>
+            markers = [];
             function page_load() {
                 var content = document.getElementById("content");
 
@@ -18,22 +19,22 @@
                     loadGroups(content);
                 }
 
-                var map = L.map('map').setView([51.505, -0.09], 13);
+                map = L.map('map').setView([51.505, -0.09], 13);
 
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
 
-                var userMarker = L.marker([0, 0]);
-                userMarker.addTo(map);
+                //var userMarker = L.marker([0, 0]);
+                //userMarker.addTo(map);
 
 
                 setInterval(function() {
                     var latitude = sharedData.getLatitude();
                     var longitude = sharedData.getLongitude();
 
-                    userMarker.setLatLng(L.latLng(latitude, longitude));
+                    //userMarker.setLatLng(L.latLng(latitude, longitude));
                 }, 1000);
 
             }
