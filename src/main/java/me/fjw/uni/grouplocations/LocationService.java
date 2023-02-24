@@ -58,10 +58,10 @@ public class LocationService extends Service {
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
-                LocationClient client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE));
+                LocationClient client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE), getBaseContext());
                 Log.d("ws_client", "Connecting to " + WS_API);
-                SocketFactory factory = SocketFactory.getDefault();
-                client.setSocketFactory(factory);
+                //SocketFactory factory = SocketFactory.getDefault();
+                //client.setSocketFactory(factory);
                 client.run();
                 Log.d("ws_client", "stopped running");
             }

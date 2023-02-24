@@ -1,12 +1,15 @@
 package me.fjw.uni.grouplocations;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -29,13 +32,13 @@ public class LocationClient extends WebSocketClient {
     private float latitude;
     private float longitude;
 
-    public LocationClient(URI uri, String authKey, LocationManager manager) {
+    public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext) {
         super(uri);
         this.authKey = authKey;
         this.uri = uri;
         this.manager = manager;
 
-        setupLocationUpdates();
+        setupLocationUpdates(baseContext);
     }
 
     private String generateFullRequest(String type, Object obj) throws JSONException {
@@ -96,7 +99,7 @@ public class LocationClient extends WebSocketClient {
         // Retrieve the response type
         try {
             JSONObject fullReq = new JSONObject(message);
-            String type = fullReq.getString("type");
+            String type = fullReq.getString("responsible_req");
 
             // TODO: Send received message to WebView
 
@@ -118,6 +121,7 @@ public class LocationClient extends WebSocketClient {
 
         } catch (JSONException e) {
             Log.d("ws_client", "Invalid JSON message received!");
+            Log.e("ws_client", "Here is the JSON error", e);
         }
 
     }
@@ -138,13 +142,18 @@ public class LocationClient extends WebSocketClient {
     }
 
     @SuppressLint("MissingPermission")
-    private void setupLocationUpdates() {
-        manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
-            @SuppressLint("MissingPermission")
+    private void setupLocationUpdates(Context baseContext) {
+        ContextCompat.getMainExecutor(baseContext).execute(new Runnable() {
             @Override
-            public void onLocationChanged(@NonNull Location location) {
-                latitude = (float) location.getLatitude();
-                longitude = (float) location.getLongitude();
+            public void run() {
+                manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onLocationChanged(@NonNull Location location) {
+                        latitude = (float) location.getLatitude();
+                        longitude = (float) location.getLongitude();
+                    }
+                });
             }
         });
     }

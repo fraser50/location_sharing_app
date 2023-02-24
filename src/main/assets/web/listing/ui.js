@@ -272,14 +272,36 @@ function addMapMarkers(groupid) {
             markers = [];
 
             decodedResponse.members.forEach((member) => {
-                console.log(member);
-                var marker = L.marker([0, 0]);
+                var marker = L.marker([member.point.x, member.point.y]);
                 marker.addTo(map);
                 markers.push(marker);
             });
         }
 
     }, function() {});
+}
+
+//TODO: Reduce code duplication
+
+function addAllMapMarkers() {
+    createRequest(sharedData.getAPI(), "/locations", null, function(req) {
+        var rsp = req.target.response;
+        var decodedResponse = JSON.parse(rsp);
+        if (decodedResponse.status == "success") {
+            markers.forEach((marker => {
+                map.removeLayer(marker);
+            }));
+
+            markers = [];
+
+            decodedResponse.members.forEach((member) => {
+                var marker = L.marker([member.point.x, member.point.y]);
+                marker.addTo(map);
+                markers.push(marker);
+            });
+        }
+
+    }, function() {})
 }
 
 testgroups = [
