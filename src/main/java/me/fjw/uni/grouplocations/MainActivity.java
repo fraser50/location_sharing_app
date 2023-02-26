@@ -16,12 +16,15 @@ import androidx.core.os.ExecutorCompat;
 import androidx.core.util.Consumer;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -52,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         private String authKey = "";
         private double latitude = 0;
         private double longitude = 0;
+
+        private LocationBinder service;
 
         @JavascriptInterface
         public String getAuthKey() {
@@ -129,6 +134,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void openSettings() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    WebView optionsView = findViewById(R.id.options);
+                    optionsView.addJavascriptInterface(service, "settings");
+                    optionsView.loadUrl("file:///android_asset/web/listing/settings.html");
+                }
+            });
+        }
+
+        public void setService(LocationBinder service) {
+            this.service = service;
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -137,11 +158,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent fgService = new Intent(this, LocationService.class);
-        startService(fgService);
-
         SharedData data = new SharedData();
         data.activity = this;
+
+        Intent fgService = new Intent(this, LocationService.class);
+        startService(fgService);
+        bindService(fgService, new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                LocationBinder binder = (LocationBinder) service;
+                data.setService(binder);
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        }, BIND_ABOVE_CLIENT);
         try {
             data.loadAuthKeyFromFile();
         } catch (FileNotFoundException e) {

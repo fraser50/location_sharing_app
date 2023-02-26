@@ -28,15 +28,17 @@ public class LocationClient extends WebSocketClient {
     private String authKey;
     private URI uri;
     private LocationManager manager;
+    private LocationService service;
 
     private float latitude;
     private float longitude;
 
-    public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext) {
+    public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext, LocationService service) {
         super(uri);
         this.authKey = authKey;
         this.uri = uri;
         this.manager = manager;
+        this.service = service;
 
         setupLocationUpdates(baseContext);
     }
@@ -54,6 +56,11 @@ public class LocationClient extends WebSocketClient {
         TODO: Check that device within tracking zone, and location sharing enabled by user,
         and location sharing hasn't been disabled by the server.
          */
+
+        if (!service.isLocationServicesEnabled()) {
+            Log.d("ws_client", "Refusing to send location, user has disabled sharing");
+            return;
+        }
 
         JSONObject locationReq = new JSONObject();
         try {

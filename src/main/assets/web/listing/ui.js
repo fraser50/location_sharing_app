@@ -6,6 +6,14 @@ function renderGroups(content, groups) {
     heading.innerText = "Groups";
     content.appendChild(heading);
 
+    var settingsButton = document.createElement("button");
+    settingsButton.innerText = "Settings";
+    settingsButton.className = "optionButton";
+
+    settingsButton.onclick = function() {
+        sharedData.openSettings();
+    };
+    
     var createGroupButton = document.createElement("button");
     createGroupButton.innerText = "+";
     createGroupButton.className = "createButton";
@@ -14,6 +22,7 @@ function renderGroups(content, groups) {
         renderGroupAddOptions(content);
     };
 
+    content.appendChild(settingsButton);
     content.appendChild(createGroupButton);
 
     groups.forEach(function(group) {
