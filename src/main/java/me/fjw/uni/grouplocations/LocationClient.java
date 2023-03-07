@@ -5,6 +5,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 
@@ -30,8 +31,17 @@ public class LocationClient extends WebSocketClient {
     private LocationManager manager;
     private LocationService service;
 
-    private float latitude;
-    private float longitude;
+    private volatile float latitude;
+    private volatile float longitude;
+
+    private LocationListener locationHandler;
+
+    public static final int IDLE_LOCATION_INTERVAL = 20000;
+    public static final int ACTIVE_LOCATION_INTERVAL = 1000;
+
+    private boolean trackerActive = false;
+
+    private boolean activeTracking = false;
 
     public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext, LocationService service) {
         super(uri);
@@ -40,7 +50,33 @@ public class LocationClient extends WebSocketClient {
         this.manager = manager;
         this.service = service;
 
-        setupLocationUpdates(baseContext);
+        locationHandler = new LocationListener() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                latitude = (float) location.getLatitude();
+                longitude = (float) location.getLongitude();
+
+                Log.d("ws_client", "Updating location");
+            }
+
+            @Override
+            public void onProviderEnabled(@NonNull String provider) {
+                Log.d("ws_client", "Provider enabled: " + provider);
+            }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) {
+                Log.d("ws_client", "Provider disabled: " + provider);
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                Log.d("ws_client", "Status changed: " + provider + " " + status);
+            }
+        };
+
+        setupLocationUpdates(baseContext, false);
     }
 
     private String generateFullRequest(String type, Object obj) throws JSONException {
@@ -66,6 +102,7 @@ public class LocationClient extends WebSocketClient {
         try {
             locationReq.put("latitude", latitude);
             locationReq.put("longitude", longitude);
+            locationReq.put("activelyTracking", activeTracking);
 
             send(generateFullRequest("location", locationReq));
 
@@ -149,20 +186,20 @@ public class LocationClient extends WebSocketClient {
     }
 
     @SuppressLint("MissingPermission")
-    private void setupLocationUpdates(Context baseContext) {
+    public void setupLocationUpdates(Context baseContext, boolean motionDetected) {
+        activeTracking = motionDetected;
         ContextCompat.getMainExecutor(baseContext).execute(new Runnable() {
             @Override
             public void run() {
-                manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onLocationChanged(@NonNull Location location) {
-                        latitude = (float) location.getLatitude();
-                        longitude = (float) location.getLongitude();
-                    }
-                });
+                if (trackerActive) {
+                    manager.removeUpdates(locationHandler);
+                }
+
+                manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, motionDetected ?
+                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);
+
+                trackerActive = true;
             }
         });
     }
-
 }

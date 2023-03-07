@@ -20,8 +20,8 @@ main {
 }
 
 #map {
-    width: 300px;
-    height: 300px;
+    width: 80vw;
+    height: 80vw;
     background-color: aqua; /* Just so I can see where the placeholder is at the moment */
     margin-bottom: 25px;
 }

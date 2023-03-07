@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:screenOrientation="portrait"
     tools:context=".MainActivity">
 
-    <androidx.camera.view.PreviewView
+    <!-- <androidx.camera.view.PreviewView
         android:id="@+id/cameraPreview"
         android:layout_width="373dp"
         android:layout_height="608dp"
@@ -17,24 +18,25 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="invisible">
 
-    </androidx.camera.view.PreviewView>
+    </androidx.camera.view.PreviewView> -->
 
     <WebView
         android:id="@+id/options"
-        android:layout_width="368dp"
-        android:layout_height="724dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible"></WebView>
+        <!-- app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.487"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.363"
-        tools:visibility="visible">
+        app:layout_constraintVertical_bias="0.363" -->
 
-    </WebView>
 
-    <Button
+
+
+    <!-- <Button
         android:id="@+id/cancelBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,6 +46,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cameraPreview"
-        tools:visibility="invisible" />
+        tools:visibility="invisible" /> -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

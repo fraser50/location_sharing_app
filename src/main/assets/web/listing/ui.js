@@ -274,13 +274,13 @@ function addMapMarkers(groupid) {
         var rsp = req.target.response;
         var decodedResponse = JSON.parse(rsp);
         if (decodedResponse.status == "success") {
-            markers.forEach((marker => {
+            markers.forEach((function(marker) {
                 map.removeLayer(marker);
             }));
 
             markers = [];
 
-            decodedResponse.members.forEach((member) => {
+            decodedResponse.members.forEach(function(member) {
                 var marker = L.marker([member.point.x, member.point.y]);
                 marker.addTo(map);
                 markers.push(marker);
@@ -297,13 +297,13 @@ function addAllMapMarkers() {
         var rsp = req.target.response;
         var decodedResponse = JSON.parse(rsp);
         if (decodedResponse.status == "success") {
-            markers.forEach((marker => {
+            markers.forEach((function(marker) {
                 map.removeLayer(marker);
             }));
 
             markers = [];
 
-            decodedResponse.members.forEach((member) => {
+            decodedResponse.members.forEach(function(member) {
                 var marker = L.marker([member.point.x, member.point.y]);
                 marker.addTo(map);
                 markers.push(marker);

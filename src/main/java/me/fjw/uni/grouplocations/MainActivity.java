@@ -31,6 +31,10 @@ import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
@@ -122,6 +126,21 @@ public class MainActivity extends AppCompatActivity {
                     latitude = location.getLatitude();
                     longitude = location.getLongitude();
                 }
+
+                @Override
+                public void onProviderEnabled(@NonNull String provider) {
+
+                }
+
+                @Override
+                public void onProviderDisabled(@NonNull String provider) {
+
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                }
             });
         }
 
@@ -152,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled", "MissingPermission"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openQRCode() {
-        BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
+        /*BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
 
         BarcodeScanner scanner = BarcodeScanning.getClient(options);
@@ -221,6 +240,6 @@ public class MainActivity extends AppCompatActivity {
         });
         preview.setVisibility(View.VISIBLE);
         preview.setController(camControl);
-        findViewById(R.id.options).setVisibility(View.INVISIBLE);
+        findViewById(R.id.options).setVisibility(View.INVISIBLE);*/
     }
 }
