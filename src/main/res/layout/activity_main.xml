@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:screenOrientation="portrait"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- <androidx.camera.view.PreviewView
+    <androidx.camera.view.PreviewView
         android:id="@+id/cameraPreview"
-        android:layout_width="373dp"
-        android:layout_height="608dp"
-        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/options"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="invisible">
 
-    </androidx.camera.view.PreviewView> -->
+    </androidx.camera.view.PreviewView>
 
     <WebView
         android:id="@+id/options"
@@ -36,16 +38,14 @@
 
 
 
-    <!-- <Button
+    <Button
         android:id="@+id/cancelBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Cancel"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/options"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cameraPreview"
-        tools:visibility="invisible" /> -->
+        android:visibility="gone"
+        android:onClick="onCancel"
+        tools:visibility="invisible"
+        tools:ignore="MissingConstraints" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

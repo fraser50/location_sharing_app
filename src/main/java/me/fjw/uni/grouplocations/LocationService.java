@@ -1,5 +1,9 @@
 package me.fjw.uni.grouplocations;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -62,6 +66,31 @@ public class LocationService extends Service implements SensorEventListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+            Intent mainActivityIntent = new Intent(this, MainActivity.class);
+
+            PendingIntent pi = PendingIntent.getActivity(this, 0, mainActivityIntent, PendingIntent.FLAG_IMMUTABLE);
+
+            NotificationChannel channel = new NotificationChannel("GroupLocChannel", "Group Locations", NotificationManager.IMPORTANCE_DEFAULT);
+
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+            notificationManager.createNotificationChannel(channel);
+
+            Notification n = new Notification.Builder(this, NotificationChannel.DEFAULT_CHANNEL_ID)
+                    .setContentTitle("Group Locations")
+                    .setContentText("This is the service used by the university location tracking service to update your location in the background. Settings can be changed by opening the Group Locations app and pressing the settings button at the top-left.")
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentIntent(pi)
+                    .setTicker("Ticker")
+                    .setChannelId("GroupLocChannel")
+                    .build();
+
+            startForeground(1, n);
+        }
+
         // Location close to Heriot-Watt main reception
         uniLoc = new Location("");
         uniLoc.setLatitude(55.909169);

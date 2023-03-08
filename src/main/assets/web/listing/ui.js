@@ -119,6 +119,10 @@ function renderGroupAddOptions(content) {
     joinButton.className = "optionButton";
     joinButton.innerText = "Join Group using Camera";
 
+    joinButton.onclick = function() {
+        sharedData.scanQRCode();
+    };
+
     content.appendChild(createNewButton);
     content.appendChild(joinButton);
 }
