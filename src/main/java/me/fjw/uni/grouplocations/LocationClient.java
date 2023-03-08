@@ -36,7 +36,7 @@ public class LocationClient extends WebSocketClient {
 
     private LocationListener locationHandler;
 
-    public static final int IDLE_LOCATION_INTERVAL = 20000;
+    public static final int IDLE_LOCATION_INTERVAL = 1000;//20000;
     public static final int ACTIVE_LOCATION_INTERVAL = 1000;
 
     private boolean trackerActive = false;
@@ -88,21 +88,28 @@ public class LocationClient extends WebSocketClient {
     }
 
     public void sendLocationUpdate(float latitude, float longitude) {
-        /*
-        TODO: Check that device within tracking zone, and location sharing enabled by user,
-        and location sharing hasn't been disabled by the server.
-         */
-
+        // Check if user has disabled location tracking
         if (!service.isLocationServicesEnabled()) {
             Log.d("ws_client", "Refusing to send location, user has disabled sharing");
             return;
         }
+
+        // Check if location tracking within area
+        Location currentLoc = new Location("");
+        currentLoc.setLatitude(latitude);
+        currentLoc.setLongitude(longitude);
+
+        boolean withinUni = currentLoc.distanceTo(service.uniLoc) < LocationService.UNI_PERMITTED_DISTANCE;
+
+        // TODO: If user is not in uni, and they're not participating in study 2, set coordinates to 0
 
         JSONObject locationReq = new JSONObject();
         try {
             locationReq.put("latitude", latitude);
             locationReq.put("longitude", longitude);
             locationReq.put("activelyTracking", activeTracking);
+            locationReq.put("withinUni", withinUni);
+            locationReq.put("distance", currentLoc.distanceTo(service.uniLoc));
 
             send(generateFullRequest("location", locationReq));
 

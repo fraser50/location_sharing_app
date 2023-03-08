@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
@@ -48,6 +49,11 @@ public class LocationService extends Service implements SensorEventListener {
 
     private LocationClient client;
 
+    public Location uniLoc;
+
+    // How close the device has to be to Heriot-Watt to be considered within the tracking area.
+    public static final double UNI_PERMITTED_DISTANCE = 50;
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -56,6 +62,11 @@ public class LocationService extends Service implements SensorEventListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Location close to Heriot-Watt main reception
+        uniLoc = new Location("");
+        uniLoc.setLatitude(55.909169);
+        uniLoc.setLongitude(-3.321470);
+
         settingsFile = new File(getFilesDir().getAbsolutePath() + File.separator + "settings.json");
 
         loadSettings(settingsFile);
