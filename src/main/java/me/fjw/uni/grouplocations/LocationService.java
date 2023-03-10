@@ -132,10 +132,36 @@ public class LocationService extends Service implements SensorEventListener {
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d("ws_client", "Connecting to " + WS_API);
 
-                client.run();
-                Log.d("ws_client", "stopped running");
+                while (true) {
+                    try {
+                        Log.d("ws_client", "Connecting to " + WS_API);
+                        client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE), getBaseContext(), LocationService.this);
+
+                        client.run();
+                        client.terminateLocationUpdates(getBaseContext());
+                        Log.d("ws_client", "stopped running");
+                    } catch (Exception e) {
+                        Log.d("ws_client", "Unknown error occurred, restarting client...");
+
+                        if (client != null) {
+                            try {
+                                client.terminateLocationUpdates(getBaseContext());
+
+                            } catch (Exception ex) {
+                                client.terminateLocationUpdates(getBaseContext());
+                            }
+                        }
+                    }
+
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
             }
         });
 

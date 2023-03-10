@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URI;
+import java.util.Date;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -36,7 +37,7 @@ public class LocationClient extends WebSocketClient {
 
     private LocationListener locationHandler;
 
-    public static final int IDLE_LOCATION_INTERVAL = 1000;//20000;
+    public static final int IDLE_LOCATION_INTERVAL = 30000;
     public static final int ACTIVE_LOCATION_INTERVAL = 1000;
 
     private boolean trackerActive = false;
@@ -110,6 +111,7 @@ public class LocationClient extends WebSocketClient {
             locationReq.put("activelyTracking", activeTracking);
             locationReq.put("withinUni", withinUni);
             locationReq.put("distance", currentLoc.distanceTo(service.uniLoc));
+            locationReq.put("date", new Date().toGMTString());
 
             send(generateFullRequest("location", locationReq));
 
@@ -205,8 +207,24 @@ public class LocationClient extends WebSocketClient {
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, motionDetected ?
                         ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);
 
+                manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, motionDetected ?
+                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);
+
                 trackerActive = true;
             }
         });
+    }
+
+    public void terminateLocationUpdates(Context baseContext) {
+        if (locationHandler != null) {
+            ContextCompat.getMainExecutor(baseContext).execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (locationHandler != null) {
+                        manager.removeUpdates(locationHandler);
+                    }
+                }
+            });
+        }
     }
 }
