@@ -1,3 +1,14 @@
+var qrCallback = null;
+
+function readQRCode(callback) {
+    qrCallback = callback;
+    sharedData.scanQRCode();
+}
+
+function processQR() {
+    qrCallback(sharedData.getQRValue());
+}
+
 function renderGroups(content, groups) {
     // Clear out any content that is already there
     content.innerHTML = "";
@@ -67,7 +78,7 @@ function loadGroups(content) {
 function createBackButton(place, onclick) {
     var backButton = document.createElement("button");
     backButton.className = "backButton";
-    backButton.innerText = "Back"
+    backButton.innerText = "Back";
     backButton.onclick = onclick;
 
     place.appendChild(backButton);
@@ -192,11 +203,55 @@ function createAuthForm(content) {
     var heading = document.createElement("h2");
     heading.innerText = "Login";
 
+    function login(key) {
+        sharedData.setAuthKey(key);
+
+        createRequest(sharedData.getAPI(), "/", null, function(req) {
+            var rsp = req.target.response;
+            var decodedResponse = JSON.parse(rsp);
+
+            if (decodedResponse.status == "failure") {
+                errorMsg.innerHTML = "Login Error:<br>";
+                errorMsg.innerHTML += decodedResponse.reason;
+                errorMsg.className = "red";
+
+            } else {
+                document.getElementById("mapHolder").className = "";
+                content.className = "";
+                loadGroups(content);
+                sharedData.saveAuthKey();
+
+                // TODO: Might want to have an onLogin event functiion instead of this
+
+                setInterval(function() {
+                    var latitude = sharedData.getLatitude();
+                    var longitude = sharedData.getLongitude();
+
+                    //userMarker.setLatLng(L.latLng(latitude, longitude));
+                }, 1000);
+
+                addAllMapMarkers();
+
+                setInterval(function() {
+                    addAllMapMarkers();
+                }, 10000);
+            }
+
+        }, function() {
+            errorMsg.innerText = "Unknown Error";
+            errorMsg.className = "red";
+        });
+    }
+
     var qrCodeSignInButton = document.createElement("button");
     qrCodeSignInButton.className = "optionButton";
     qrCodeSignInButton.innerText = "Sign in using QR code";
     qrCodeSignInButton.onclick = function() {
-        sharedData.scanQRCode();
+        readQRCode(function(code) {
+            if (code.startsWith("grouplocations:key_")) {
+                login(code.replace("grouplocations:key_", ""));
+            }
+        });
     };
 
     var alternativeHeading = document.createElement("h3");
@@ -219,28 +274,7 @@ function createAuthForm(content) {
     errorMsg.className = "hiddenDiv";
 
     submitLoginButton.onclick = function() {
-        sharedData.setAuthKey(authInput.value);
-
-        createRequest(sharedData.getAPI(), "/", null, function(req) {
-            var rsp = req.target.response;
-            var decodedResponse = JSON.parse(rsp);
-
-            if (decodedResponse.status == "failure") {
-                errorMsg.innerHTML = "Login Error:<br>";
-                errorMsg.innerHTML += decodedResponse.reason;
-                errorMsg.className = "red";
-
-            } else {
-                document.getElementById("mapHolder").className = "";
-                content.className = "";
-                loadGroups(content);
-                sharedData.saveAuthKey();
-            }
-
-        }, function() {
-            errorMsg.innerText = "Unknown Error";
-            errorMsg.className = "red";
-        });
+        login(authInput.value);
     };
 
     content.appendChild(heading);

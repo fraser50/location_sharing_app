@@ -68,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
     private Camera cam;
     private ProcessCameraProvider provider;
 
+    private SharedData data;
+
     public class SharedData {
         public MainActivity activity;
         public SharedData() {
@@ -79,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
         private double longitude = 0;
 
         private LocationBinder service;
+
+        private String QRValue;
 
         @JavascriptInterface
         public String getAuthKey() {
@@ -186,8 +190,16 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        @JavascriptInterface
+        public String getQRValue() {
+            return QRValue;
+        }
+
         public void setService(LocationBinder service) {
             this.service = service;
+        }
+        public void setQRValue(String QRValue) {
+            this.QRValue = QRValue;
         }
     }
 
@@ -197,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SharedData data = new SharedData();
+        data = new SharedData();
         data.activity = this;
 
         Intent fgService = new Intent(this, LocationService.class);
@@ -289,6 +301,12 @@ public class MainActivity extends AppCompatActivity {
                                         Log.d("qr_scanner", "Successfully scanned codes!");
                                         for (Barcode barcode : barcodes) {
                                             Log.d("qr_scanner", barcode.getRawValue());
+
+                                            data.setQRValue(barcode.getRawValue());
+                                            WebView view = findViewById(R.id.options);
+
+                                            view.loadUrl("javascript:processQR()");
+                                            break;
                                         }
 
                                         onCancel(null);
