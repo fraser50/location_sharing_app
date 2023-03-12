@@ -36,6 +36,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -180,14 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void openSettings() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    WebView optionsView = findViewById(R.id.options);
-                    optionsView.addJavascriptInterface(service, "settings");
-                    optionsView.loadUrl("file:///android_asset/web/listing/settings.html");
-                }
-            });
+            showSettings();
         }
 
         @JavascriptInterface
@@ -334,6 +329,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.settings) {
+            showSettings();
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     protected void onStop() {
         Log.d("main_activity", "App closed");
         super.onStop();
@@ -347,5 +358,30 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.options).setVisibility(View.VISIBLE);
 
         provider.unbindAll();
+    }
+
+    public void showSettings() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WebView optionsView = findViewById(R.id.options);
+                optionsView.addJavascriptInterface(data.service, "settings");
+                optionsView.addJavascriptInterface(new Object() {
+                    @JavascriptInterface
+                    public void close() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                optionsView.removeJavascriptInterface("settings");
+                                optionsView.removeJavascriptInterface("closer");
+                                optionsView.loadUrl("file:///android_asset/web/listing/index.html");
+                            }
+                        });
+                    }
+                }, "closer");
+
+                optionsView.loadUrl("file:///android_asset/web/listing/settings.html");
+            }
+        });
     }
 }

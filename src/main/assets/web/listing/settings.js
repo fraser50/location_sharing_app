@@ -11,8 +11,21 @@ function generateStatus(name, state) {
     return heading;
 }
 
+function createBackButton(place, onclick) {
+    var backButton = document.createElement("button");
+    backButton.className = "backButton";
+    backButton.innerText = "Back";
+    backButton.onclick = onclick;
+
+    place.appendChild(backButton);
+}
+
 function renderSettings(content) {
     content.innerHTML = "";
+
+    createBackButton(content, function() {
+        closer.close();
+    });
 
     content.appendChild(generateStatus("Location tracking", settings.isLocationServicesEnabled()));
 
