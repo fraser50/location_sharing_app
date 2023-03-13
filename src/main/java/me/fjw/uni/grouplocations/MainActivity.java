@@ -34,6 +34,7 @@ import android.location.LocationManager;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.FileUtils;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
@@ -56,15 +57,33 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class MainActivity extends AppCompatActivity {
     private Camera cam;
@@ -237,15 +256,23 @@ public class MainActivity extends AppCompatActivity {
 
         optionsView.getSettings().setJavaScriptEnabled(true);
         optionsView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+        optionsView.getSettings().setAllowFileAccess(true);
 
         optionsView.addJavascriptInterface(data, "sharedData");
-        optionsView.loadUrl("file:///android_asset/web/listing/index.html");
+        //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
 
         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Log.d("providers", "Printing providers:");
         for (String provider : manager.getAllProviders()) {
             Log.d("providers", provider);
         }
+
+        updateUI(new Runnable() {
+            @Override
+            public void run() {
+                optionsView.loadUrl("file://" + new File(getFilesDir() + File.separator + "ui" + File.separator + "index.html").getAbsolutePath());
+            }
+        });
 
     }
 
@@ -383,5 +410,129 @@ public class MainActivity extends AppCompatActivity {
                 optionsView.loadUrl("file:///android_asset/web/listing/settings.html");
             }
         });
+    }
+
+    /**
+     * This method will update the UI and will notfy the given callback.
+     * @param callback The callback to be called when the UI is updated successfully. This will run on the UI thread.
+     */
+    public void updateUI(Runnable callback) {
+        new Thread() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(data.getAPI() + "/versioninfo");
+                    URLConnection conn = url.openConnection();
+                    conn.connect();
+                    InputStreamReader reader = new InputStreamReader(url.openStream());
+
+                    StringBuilder sb = new StringBuilder();
+                    char[] c = new char[4096];
+
+                    int result = reader.read(c);
+
+                    while (result != -1) {
+                        for (int i=0; i<result; i++) {
+                            sb.append(c[i]);
+                        }
+
+                        result = reader.read(c);
+                    }
+
+                    reader.close();
+
+                    String response = sb.toString();
+                    Log.d("ui_updater", "Got response");
+                    Log.d("ui_updater", response);
+
+                    // Get current local version
+                    File versionFile = new File(getFilesDir().getAbsolutePath() + File.separator + "version.txt");
+                    int currentVersion = -1;
+
+                    if (versionFile.exists()) {
+                        Scanner scan = new Scanner(versionFile);
+                        currentVersion = scan.nextInt();
+                        scan.close();
+                    }
+
+                    // Compare the current installed version with the newest version the server has available
+
+                    JSONObject jsonRsp = new JSONObject(response);
+
+                    int remoteVersion = jsonRsp.getInt("version");
+
+                    // If the remote version is newer, update
+
+                    if (remoteVersion > currentVersion) {
+                        Log.d("ui_updater", "Version " + remoteVersion + " is newer than " + currentVersion);
+                        File zipFile = new File(getFilesDir() + File.separator + "ui.zip");
+                        if (zipFile.exists()) zipFile.delete();
+
+                        // Download and save new version zip
+                        URL dlURL = new URL(data.getAPI() + "/version.zip");
+                        InputStream istream = dlURL.openStream();
+                        OutputStream ostream = new FileOutputStream(zipFile);
+
+                        // TODO: Perhaps make this work on API 22
+                        FileUtils.copy(istream, ostream);
+
+                        istream.close();
+                        ostream.close();
+
+                        // Delete existing installation
+
+                        File uiFolder = new File(getFilesDir() + File.separator + "ui");
+
+                        Utils.deleteEverything(uiFolder);
+
+                        uiFolder.mkdir();
+
+                        // Extract files from zip
+                        ZipFile zip = new ZipFile(zipFile);
+
+                        Enumeration<? extends ZipEntry> entries = zip.entries();
+
+                        while (entries.hasMoreElements()) {
+                            ZipEntry entry = entries.nextElement();
+
+                            File extractedFile = new File(uiFolder.getAbsolutePath() + File.separator + entry.getName());
+                            // Check that extracted files will not be placed outside of the installation directory
+                            if (extractedFile.getAbsolutePath().startsWith(uiFolder.getAbsolutePath())) {
+                                Log.d("ui_updater", "Extracting " + extractedFile.getAbsolutePath());
+
+                                if (entry.isDirectory()) {
+                                    extractedFile.mkdirs();
+                                    continue;
+                                }
+
+                                istream = zip.getInputStream(entry);
+                                ostream = new FileOutputStream(extractedFile);
+
+                                FileUtils.copy(istream, ostream);
+
+                                istream.close();
+                                ostream.close();
+                            }
+                        }
+                    }
+
+                    // Update local version number
+
+                    if (versionFile.exists()) versionFile.delete();
+
+                    FileWriter writer = new FileWriter(versionFile);
+                    writer.write("" + remoteVersion);
+                    writer.close();
+
+                    runOnUiThread(callback);
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }.start();
     }
 }
