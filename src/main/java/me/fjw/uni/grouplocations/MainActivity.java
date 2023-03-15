@@ -16,6 +16,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.CameraController;
 import androidx.camera.view.LifecycleCameraController;
 import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.location.LocationManagerCompat;
 import androidx.core.os.CancellationSignal;
@@ -23,11 +24,13 @@ import androidx.core.os.ExecutorCompat;
 import androidx.core.util.Consumer;
 import androidx.lifecycle.LifecycleOwner;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     public class SharedData {
         public MainActivity activity;
         public SharedData() {
-            setupRequestLocation();
+            //setupRequestLocation();
         }
         // This key is for testing on my local machine.
         private String authKey = "";
@@ -159,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // TODO: Actually check permissions
-        @SuppressLint("MissingPermission")
+        /*@SuppressLint("MissingPermission")
         public void setupRequestLocation() {
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -185,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             });
-        }
+        }*/
 
         @JavascriptInterface
         public void scanQRCode() {
@@ -226,6 +229,10 @@ public class MainActivity extends AppCompatActivity {
         data = new SharedData();
         data.activity = this;
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+        }
+
         Intent fgService = new Intent(this, LocationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(fgService);
@@ -261,11 +268,11 @@ public class MainActivity extends AppCompatActivity {
         optionsView.addJavascriptInterface(data, "sharedData");
         //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
 
-        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Log.d("providers", "Printing providers:");
-        for (String provider : manager.getAllProviders()) {
-            Log.d("providers", provider);
-        }
+        //LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        //Log.d("providers", "Printing providers:");
+        //for (String provider : manager.getAllProviders()) {
+        //    Log.d("providers", provider);
+        //}
 
         updateUI(new Runnable() {
             @Override
@@ -282,6 +289,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.options).setVisibility(View.GONE);
 
         PreviewView previewV = findViewById(R.id.cameraPreview);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+            requestPermissions(new String[] {Manifest.permission.CAMERA},1);
+        }
 
         MainActivity mainActivity = this;
 
@@ -534,5 +545,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.start();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }

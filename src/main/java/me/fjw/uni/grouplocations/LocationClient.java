@@ -1,7 +1,9 @@
 package me.fjw.uni.grouplocations;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -10,6 +12,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.java_websocket.client.WebSocketClient;
@@ -194,7 +197,6 @@ public class LocationClient extends WebSocketClient {
     protected void onSetSSLParameters(SSLParameters sslParameters) {
     }
 
-    @SuppressLint("MissingPermission")
     public void setupLocationUpdates(Context baseContext, boolean motionDetected) {
         activeTracking = motionDetected;
         ContextCompat.getMainExecutor(baseContext).execute(new Runnable() {
@@ -204,8 +206,12 @@ public class LocationClient extends WebSocketClient {
                     manager.removeUpdates(locationHandler);
                 }
 
+                if (ActivityCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Log.w("ws_client", "Location access has not been granted!");
+                    return;
+                }
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, motionDetected ?
-                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);
+                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL, 0.5f, locationHandler);
 
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, motionDetected ?
                         ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);

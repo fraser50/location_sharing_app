@@ -16,6 +16,10 @@
                     document.getElementById("content").className = "contentFullHeight";
 
                 } else {
+                    setInterval(function() {
+                        addAllMapMarkers();
+                    }, 10000);
+
                     loadGroups(content);
                 }
 
@@ -28,9 +32,6 @@
 
                 //var userMarker = L.marker([0, 0]);
                 //userMarker.addTo(map);
-
-
-                
 
             }
         </script>
