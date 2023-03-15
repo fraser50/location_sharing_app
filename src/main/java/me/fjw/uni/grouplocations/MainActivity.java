@@ -401,13 +401,13 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 optionsView.removeJavascriptInterface("settings");
                                 optionsView.removeJavascriptInterface("closer");
-                                optionsView.loadUrl("file:///android_asset/web/listing/index.html");
+                                optionsView.loadUrl("file://" + new File(getFilesDir() + File.separator + "ui" + File.separator + "index.html").getAbsolutePath());
                             }
                         });
                     }
                 }, "closer");
 
-                optionsView.loadUrl("file:///android_asset/web/listing/settings.html");
+                optionsView.loadUrl("file:///android_asset/settings.html");
             }
         });
     }
