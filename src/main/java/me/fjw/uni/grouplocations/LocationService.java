@@ -113,28 +113,27 @@ public class LocationService extends Service implements SensorEventListener {
             return START_STICKY;
         }
 
-        Log.d("ws_client", "Finished creating URI, loading auth key...");
-
-        String authKey;
-        File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
-        try {
-            Scanner scan = new Scanner(f);
-            authKey = scan.next();
-            scan.close();
-        } catch (FileNotFoundException e) {
-            Log.d("ws_client", "auth.txt not found!");
-            return START_STICKY;
-        }
-
-        Log.d("ws_client", "Auth key loaded successfully!");
-
-        client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE), getBaseContext(), LocationService.this);
+        //client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE), getBaseContext(), LocationService.this);
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
 
                 while (true) {
                     try {
+
+                        String authKey;
+                        File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
+                        try {
+                            Scanner scan = new Scanner(f);
+                            authKey = scan.next();
+                            scan.close();
+                        } catch (FileNotFoundException e) {
+                            Log.d("ws_client", "auth.txt not found!");
+                            Thread.sleep(30000);
+                            continue;
+                        }
+
+                        Log.d("ws_client", "Auth key loaded successfully!");
                         Log.d("ws_client", "Connecting to " + WS_API);
                         client = new LocationClient(u, authKey, (LocationManager) getSystemService(Context.LOCATION_SERVICE), getBaseContext(), LocationService.this);
 
