@@ -94,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedData data;
 
+    private String messageReceived;
+
     public class SharedData {
         public MainActivity activity;
         public SharedData() {
@@ -218,6 +220,19 @@ public class MainActivity extends AppCompatActivity {
         public void setQRValue(String QRValue) {
             this.QRValue = QRValue;
         }
+
+        @JavascriptInterface
+        public String getMessageReceived() {
+            return messageReceived;
+        }
+
+        public void sendMessage(String message) {
+            service.sendWS(message);
+        }
+
+        public void setMessageReceived(String message) {
+            messageReceived = message;
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "MissingPermission"})
@@ -266,6 +281,20 @@ public class MainActivity extends AppCompatActivity {
         optionsView.getSettings().setAllowFileAccess(true);
 
         optionsView.addJavascriptInterface(data, "sharedData");
+
+        data.service.setReceiveCallback(new Runnable() {
+            @Override
+            public void run() {
+                String receivedMessage = data.service.getService().getClient().getReceiveMessage();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        data.setMessageReceived(receivedMessage);
+                        optionsView.loadUrl("javascript:onWSMessage()");
+                    }
+                });
+            }
+        });
         //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
 
         //LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -539,9 +568,8 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(callback);
 
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    // TODO: Error log
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
                 }
             }
         }.start();

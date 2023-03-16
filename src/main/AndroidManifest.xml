@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" /> <!-- Camera permission will be needed for scanning QR code -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <!--
  Need to be able to let the user know when they leave and enter the tracking zone,
     and notify them that they're still being tracked

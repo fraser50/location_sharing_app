@@ -29,4 +29,22 @@ public class LocationBinder extends Binder {
     public void setExtendedTracking(boolean extendedTracking) {
         service.setExtendedTracking(extendedTracking);
     }
+
+    public void sendWS(String message) {
+        if (service.getClient() != null) {
+            service.getClient().send(message);
+        }
+    }
+
+    /**
+     * Set the callback that is invoked when non-auth messages are received.
+     * @param r The runnable to call when a message is received, worth noting: the callback will run on the service thread, i.e. it should return as soon as possible (perform long-running work on another thread)
+     */
+    public void setReceiveCallback(Runnable r) {
+        service.setReceiveCallback(r);
+    }
+
+    public LocationService getService() {
+        return service;
+    }
 }

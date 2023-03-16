@@ -56,8 +56,9 @@ public class LocationService extends Service implements SensorEventListener {
     public Location uniLoc;
 
     // How close the device has to be to Heriot-Watt to be considered within the tracking area.
-    public static final double UNI_PERMITTED_DISTANCE = 50;
+    public static final double UNI_PERMITTED_DISTANCE = 300;
 
+    private Runnable receiveCallback;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -263,5 +264,17 @@ public class LocationService extends Service implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    public LocationClient getClient() {
+        return client;
+    }
+
+    public void setReceiveCallback(Runnable r) {
+        this.receiveCallback = r;
+    }
+
+    public Runnable getReceiveCallback() {
+        return receiveCallback;
     }
 }

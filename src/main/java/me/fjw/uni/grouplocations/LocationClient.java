@@ -2,6 +2,7 @@ package me.fjw.uni.grouplocations;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -46,6 +47,8 @@ public class LocationClient extends WebSocketClient {
     private boolean trackerActive = false;
 
     private boolean activeTracking = false;
+
+    private String receiveMessage;
 
     public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext, LocationService service) {
         super(uri);
@@ -105,7 +108,18 @@ public class LocationClient extends WebSocketClient {
 
         boolean withinUni = currentLoc.distanceTo(service.uniLoc) < LocationService.UNI_PERMITTED_DISTANCE;
 
-        // TODO: If user is not in uni, and they're not participating in study 2, set coordinates to 0
+        // Refuse to share location if device not on HW campus and they haven't opted into extended tracking
+        if (!withinUni && !service.isExtendedTracking()) {
+            JSONObject locationReq = new JSONObject();
+            try {
+                locationReq.put("onCampus", false);
+                send(generateFullRequest("location", locationReq));
+
+            } catch (JSONException e) {
+                Log.d("ws_client", "JSON Error on sending location refusal");
+            }
+            return;
+        }
 
         JSONObject locationReq = new JSONObject();
         try {
@@ -175,6 +189,12 @@ public class LocationClient extends WebSocketClient {
                     break;
             }
 
+            receiveMessage = message;
+            // Call receive callback when a non-auth message is received
+            if (service.getReceiveCallback() != null && !type.equals("auth")) {
+                service.getReceiveCallback().run();
+            }
+
         } catch (JSONException e) {
             Log.d("ws_client", "Invalid JSON message received!");
             Log.e("ws_client", "Here is the JSON error", e);
@@ -208,8 +228,9 @@ public class LocationClient extends WebSocketClient {
 
                 if (ActivityCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     Log.w("ws_client", "Location access has not been granted!");
-                    return;
+                    //return;
                 }
+
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, motionDetected ?
                         ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL, 0.5f, locationHandler);
 
@@ -232,5 +253,9 @@ public class LocationClient extends WebSocketClient {
                 }
             });
         }
+    }
+
+    public String getReceiveMessage() {
+        return receiveMessage;
     }
 }
