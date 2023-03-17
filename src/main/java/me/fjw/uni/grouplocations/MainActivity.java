@@ -419,8 +419,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         Log.d("main_activity", "App closed");
         super.onStop();
-        WebView wv = findViewById(R.id.options);
-        wv.destroy();
+        WebView options = findViewById(R.id.options);
+        options.onPause();
+        options.pauseTimers();
     }
 
     public void onCancel(View v) {
@@ -429,6 +430,41 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.options).setVisibility(View.VISIBLE);
 
         provider.unbindAll();
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        WebView options = findViewById(R.id.options);
+        options.onPause();
+        options.pauseTimers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        WebView options = findViewById(R.id.options);
+        options.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        WebView options = findViewById(R.id.options);
+        options.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        WebView options = findViewById(R.id.options);
+        options.onPause();
+        options.pauseTimers();
     }
 
     public void showSettings() {
