@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String messageReceived;
 
+    // This class is used to store methods that are callable from inside the WebView.
     public class SharedData {
         public MainActivity activity;
         public SharedData() {
@@ -264,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         String receivedMessage = data.service.getService().getClient().getReceiveMessage();
+
+                        // Notify JS code running in WebView that a WS message has been received
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -293,10 +296,12 @@ public class MainActivity extends AppCompatActivity {
 
         CookieManager.getInstance().setAcceptThirdPartyCookies(optionsView, true);
 
+        // Needs JS as well as file access so the UI files can be loaded by the browser.
         optionsView.getSettings().setJavaScriptEnabled(true);
         optionsView.getSettings().setAllowUniversalAccessFromFileURLs(true);
         optionsView.getSettings().setAllowFileAccess(true);
 
+        // Provides access to the SharedData instance.
         optionsView.addJavascriptInterface(data, "sharedData");
 
         //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
@@ -307,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
         //    Log.d("providers", provider);
         //}
 
+        // Request an update, and after completion, load the main page.
         updateUI(new Runnable() {
             @Override
             public void run() {
@@ -510,6 +516,7 @@ public class MainActivity extends AppCompatActivity {
                     StringBuilder sb = new StringBuilder();
                     char[] c = new char[4096];
 
+                    // Download response from server
                     int result = reader.read(c);
 
                     while (result != -1) {

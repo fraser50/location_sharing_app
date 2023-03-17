@@ -122,6 +122,7 @@ public class LocationService extends Service implements SensorEventListener {
                 while (true) {
                     try {
 
+                        // Authentication
                         String authKey;
                         File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
                         try {
@@ -167,6 +168,7 @@ public class LocationService extends Service implements SensorEventListener {
 
         worker.start();
 
+        // Register accelerometer listener (used for detecting when the user is walking)
         SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         Sensor accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -248,10 +250,19 @@ public class LocationService extends Service implements SensorEventListener {
                     client.setupLocationUpdates(getBaseContext(), true);
                     frequentTracking = true;
 
+                    JSONObject jobj = new JSONObject();
+                    try {
+                        jobj.put("activelyMoving", true);
+                        client.send(client.generateFullRequest("motion", jobj));
+
+                    } catch (JSONException e) {
+
+                    }
 
                 }
             }
 
+            // If the last reading was 10 seconds ago, disable frequent tracking mode
             if (newReadingTime - lastLowReadingTime > 10000 && frequentTracking) {
                 client.setupLocationUpdates(getBaseContext(), false);
                 frequentTracking = false;

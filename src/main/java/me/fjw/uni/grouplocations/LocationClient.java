@@ -86,7 +86,7 @@ public class LocationClient extends WebSocketClient {
         setupLocationUpdates(baseContext, false);
     }
 
-    private String generateFullRequest(String type, Object obj) throws JSONException {
+    public String generateFullRequest(String type, Object obj) throws JSONException {
         JSONObject fullReq = new JSONObject();
         fullReq.put("type", type);
         fullReq.put("body", obj);
