@@ -34,6 +34,10 @@
                 //userMarker.addTo(map);
 
             }
+
+            function onWSMessage() {
+                console.log(sharedData.getMessageReceived());
+            }
         </script>
 
         <script src="leaflet/leaflet.js"></script>

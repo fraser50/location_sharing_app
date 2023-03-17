@@ -89,6 +89,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class MainActivity extends AppCompatActivity {
+    // Whether the app should always update, regardless of version (useful for development)
+    public static final boolean ALWAYS_UPDATE = true;
     private Camera cam;
     private ProcessCameraProvider provider;
 
@@ -258,6 +260,21 @@ public class MainActivity extends AppCompatActivity {
                 LocationBinder binder = (LocationBinder) service;
                 data.setService(binder);
 
+                data.service.setReceiveCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        String receivedMessage = data.service.getService().getClient().getReceiveMessage();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                data.setMessageReceived(receivedMessage);
+                                WebView optionsView = findViewById(R.id.options);
+                                optionsView.loadUrl("javascript:onWSMessage()");
+                            }
+                        });
+                    }
+                });
+
             }
 
             @Override
@@ -282,19 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
         optionsView.addJavascriptInterface(data, "sharedData");
 
-        data.service.setReceiveCallback(new Runnable() {
-            @Override
-            public void run() {
-                String receivedMessage = data.service.getService().getClient().getReceiveMessage();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        data.setMessageReceived(receivedMessage);
-                        optionsView.loadUrl("javascript:onWSMessage()");
-                    }
-                });
-            }
-        });
         //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
 
         //LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -504,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // If the remote version is newer, update
 
-                    if (remoteVersion > currentVersion) {
+                    if (remoteVersion > currentVersion || ALWAYS_UPDATE) {
                         Log.d("ui_updater", "Version " + remoteVersion + " is newer than " + currentVersion);
                         File zipFile = new File(getFilesDir() + File.separator + "ui.zip");
                         if (zipFile.exists()) zipFile.delete();
@@ -543,18 +547,34 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (entry.isDirectory()) {
                                     extractedFile.mkdirs();
+                                    Log.d("ui_updater", "Is directory");
                                     continue;
                                 }
 
+                                Log.d("ui_updater", "Creating parent directory");
+
+                                extractedFile.getParentFile().mkdirs();
+
+                                Log.d("ui_updater", "Getting input stream");
+
                                 istream = zip.getInputStream(entry);
+                                Log.d("ui_updater", "Getting output stream");
                                 ostream = new FileOutputStream(extractedFile);
+
+                                Log.d("ui_updater", "Copying file");
 
                                 FileUtils.copy(istream, ostream);
 
+                                Log.d("ui_updater", "Finished copying, closing streams.");
                                 istream.close();
                                 ostream.close();
+                                Log.d("ui_updater", "Streams successfully closed.");
+                            } else {
+                                Log.w("ui_updater", "Incorrect path for " + extractedFile.getAbsolutePath());
                             }
                         }
+
+                        Log.d("ui_updater", "Finished extracting.");
                     }
 
                     // Update local version number
