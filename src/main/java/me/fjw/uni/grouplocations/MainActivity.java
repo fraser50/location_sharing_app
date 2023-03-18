@@ -471,6 +471,8 @@ public class MainActivity extends AppCompatActivity {
         WebView options = findViewById(R.id.options);
         options.onPause();
         options.pauseTimers();
+
+        options.destroy();
     }
 
     public void showSettings() {

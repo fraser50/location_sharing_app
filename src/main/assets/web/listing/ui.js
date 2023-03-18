@@ -99,8 +99,12 @@ function renderMembers(content, group, members) {
 
 function renderGroupAddOptions(content) {
     content.innerHTML = "";
+    document.getElementById("mapHolder").className = "hiddenDiv";
+    content.className = "contentFullHeight";
 
     createBackButton(content, function() {
+        document.getElementById("mapHolder").className = "";
+        content.className = "content";
         loadGroups(content);
     });
 
@@ -119,10 +123,10 @@ function renderGroupAddOptions(content) {
     // This button will be used in the future for opening up the phone camera to scan a QR code from another user
     var joinButton = document.createElement("button");
     joinButton.className = "optionButton";
-    joinButton.innerText = "Join Group using Camera";
+    joinButton.innerText = "Join Group";
 
     joinButton.onclick = function() {
-        sharedData.scanQRCode();
+        renderJoinGroupForm(content);
     };
 
     content.appendChild(createNewButton);
@@ -131,8 +135,11 @@ function renderGroupAddOptions(content) {
 
 function renderCreateGroupForm(content) {
     content.innerHTML = "";
+    document.getElementById("mapHolder").className = "hiddenDiv";
+    content.className = "contentFullHeight";
 
     createBackButton(content, function() {
+        document.getElementById("mapHolder").className = "";
         loadGroups(content);
     });
 
@@ -188,6 +195,77 @@ function renderCreateGroupForm(content) {
     content.appendChild(submitButton);
 }
 
+function renderJoinGroupForm(content) {
+    content.innerHTML = "";
+
+    createBackButton(content, function() {
+        document.getElementById("mapHolder").className = "";
+        content.className = "content";
+        loadGroups(content);
+    });
+
+    var heading = document.createElement("h2");
+    heading.innerText = "Join Group";
+    content.appendChild(heading);
+
+    var joinCameraButton = document.createElement("button");
+    joinCameraButton.className = "optionButton";
+    joinCameraButton.innerText = "Join Group using Camera";
+
+    function joinGroup(code) {
+        // TODO: Set nickname
+        createRequest(sharedData.getAPI(), "/joingroup/" + code, null, function(req) {
+            console.log("joinGroup called");
+            var rsp = req.target.response;
+            var decodedResponse = JSON.parse(rsp);
+
+            if (decodedResponse.status == "success") {
+                console.log("Success");
+                document.getElementById("mapHolder").className = "";
+                content.className = "content";
+                loadGroups(content);
+
+            } else {
+                console.log("Failure");
+                alert("That group code is not valid!");
+            }
+        }, function() {});
+    }
+
+    joinCameraButton.onclick = function() {
+        readQRCode(function(code) {
+            if (code.startsWith("grouplocations:group_")) {
+                joinGroup(code.replace("grouplocations:group_", ""));
+
+            } else {
+                alert("That was not a join code!");
+            }
+        });
+    };
+
+    var groupCodeText = document.createElement("p");
+    groupCodeText.innerText = "Group Join Code";
+    groupCodeText.style = "font-size: medium";
+
+    var groupCodeInput = document.createElement("input");
+    groupCodeInput.className = "inputField";
+    groupCodeInput.type = "text";
+
+    var joinButton = document.createElement("button");
+    joinButton.className = "optionButton";
+    joinButton.innerText = "Join";
+
+    joinButton.onclick = function() {
+        joinGroup(groupCodeInput.value);
+    };
+
+    content.appendChild(joinCameraButton);
+    content.appendChild(groupCodeText);
+    content.appendChild(groupCodeInput);
+    content.appendChild(joinButton);
+
+}
+
 function createAuthForm(content) {
     content.innerHTML = "";
 
@@ -208,7 +286,7 @@ function createAuthForm(content) {
 
             } else {
                 document.getElementById("mapHolder").className = "";
-                content.className = "";
+                content.className = "content";
                 loadGroups(content);
                 sharedData.saveAuthKey();
 
