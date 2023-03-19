@@ -251,7 +251,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void sendMessage(String message) {
-            service.sendWS(message);
+            try {
+                service.sendWS(message);
+
+            } catch (Exception e) {
+                Log.e("ui", "Error occurred when WebView tried to send WS message", e);
+            }
         }
 
         public void setMessageReceived(String message) {

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -165,6 +166,14 @@ public class LocationClient extends WebSocketClient {
     public void onMessage(String message) {
         Log.d("ws_client", "Message received");
         Log.d("ws_client", message);
+
+        Date currentDate = new Date();
+
+        if (currentDate.after(LocationService.CUTOFF_DATE)) {
+            Log.d("ws_client", "Received message after cutoff date, stopping ws client.");
+            close();
+            return;
+        }
 
         // Retrieve the response type
         try {

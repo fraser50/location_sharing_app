@@ -76,8 +76,19 @@ function createBackButton(place, onclick) {
 }
 
 function renderMembers(content, group, members) {
-    addMapMarkers(group.groupid);
+    console.log(group);
+    //addMapMarkers(group.groupid);
     content.innerHTML = "";
+
+    var invitePageButton = document.createElement("button");
+    invitePageButton.innerText = "+";
+    invitePageButton.className = "createButton";
+
+    invitePageButton.onclick = function() {
+        renderInvitePage(content, group.groupid);
+    };
+
+    content.appendChild(invitePageButton);
 
     createBackButton(content, function() {
         loadGroups(content);
@@ -95,6 +106,36 @@ function renderMembers(content, group, members) {
 
         content.appendChild(memberButton);
     });
+}
+
+function renderInvitePage(content, groupID) {
+    content.innerHTML = "";
+
+    createBackButton(content, function() {
+        document.getElementById("mapHolder").className = "";
+        content.className = "content";
+        loadGroups(content);
+    });
+
+    document.getElementById("mapHolder").className = "hiddenDiv";
+    content.className = "contentFullHeight";
+
+    createRequest(sharedData.getAPI(), "/createinvite/" + groupID, null, function(req) {
+        var rsp = req.target.response;
+
+        var decodedResponse = JSON.parse(rsp);
+
+        if (decodedResponse.status == "success") {
+            var heading = document.createElement("h2");
+            heading.innerText = "Invite Code";
+            content.appendChild(heading);
+            
+            var actualHeading = document.createElement("h2");
+            actualHeading.innerText = decodedResponse.inviteID;
+            content.appendChild(actualHeading);
+        }
+
+    }, function() {});
 }
 
 function renderGroupAddOptions(content) {

@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Scanner;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -58,6 +59,10 @@ public class LocationService extends Service implements SensorEventListener {
 
     // How close the device has to be to Heriot-Watt to be considered within the tracking area.
     public static final double UNI_PERMITTED_DISTANCE = 300;
+
+    // Date at which the app functionality will forcibly stop working. (17th of April 2023 at 3:14AM GMT)
+    // The app may be shut down at an earlier date, however, the date below cannot be changed on the server-side.
+    public static Date CUTOFF_DATE = new Date(1684293255000L);
 
     private Runnable receiveCallback;
 
@@ -122,6 +127,14 @@ public class LocationService extends Service implements SensorEventListener {
 
                 while (true) {
                     try {
+
+                        Date currentDate = new Date();
+
+                        // Don't attempt to run the service if the date is after the cutoff date.
+                        if (currentDate.after(CUTOFF_DATE)) {
+                            Log.d("ws_client", "Cutoff date reached, refusing to start.");
+                            return;
+                        }
 
                         // Authentication
                         String authKey;
