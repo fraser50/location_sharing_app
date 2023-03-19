@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -255,7 +256,7 @@ public class LocationService extends Service implements SensorEventListener {
                         jobj.put("activelyMoving", true);
                         client.send(client.generateFullRequest("motion", jobj));
 
-                    } catch (JSONException e) {
+                    } catch (JSONException | WebsocketNotConnectedException e) {
 
                     }
 

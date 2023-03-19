@@ -157,6 +157,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void signOut() {
+            Log.d("ui", "Signing out...");
+            File f = new File(getFilesDir().getAbsolutePath() + File.separator + "auth.txt");
+            f.delete();
+            authKey = "";
+            CookieManager.getInstance().setCookie(getAPI(), "");
+
+            // Restart service after deleting auth.txt
+
+            Log.d("ui", "Attempting to reboot service...");
+
+            try {
+                service.getService().getClient().closeBlocking();
+                Log.d("ui", "Service reboot successful!");
+            } catch (InterruptedException e) {
+                Log.e("ui", "Failed to close LocationClient", e);
+            }
+
+        }
+
+        @JavascriptInterface
         public double getLatitude() {
             return latitude;
         }
