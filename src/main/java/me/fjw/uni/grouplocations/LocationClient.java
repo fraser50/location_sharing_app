@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -108,6 +109,20 @@ public class LocationClient extends WebSocketClient {
         currentLoc.setLongitude(longitude);
 
         boolean withinUni = currentLoc.distanceTo(service.uniLoc) < LocationService.UNI_PERMITTED_DISTANCE;
+
+        // If the device is within the tracking zone, check that they are not within any of the exclusion zones
+        if (withinUni) {
+            for (Pair<Location, Integer> exclusionPair : service.excludedLocations) {
+                Location exclusionLocation = exclusionPair.first;
+                int exclusionDistance = exclusionPair.second;
+
+                if (currentLoc.distanceTo(exclusionLocation) < exclusionDistance) {
+                    withinUni = false;
+                    if (!service.isExtendedTracking()) Log.d("ws_client", "User is within exclusion zone, refusing tracking");
+                    break;
+                }
+            }
+        }
 
         // Refuse to share location if device not on HW campus and they haven't opted into extended tracking
         if (!withinUni && !service.isExtendedTracking()) {

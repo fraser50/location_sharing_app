@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Pair;
 
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.json.JSONException;
@@ -25,7 +26,9 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -58,7 +61,10 @@ public class LocationService extends Service implements SensorEventListener {
     public Location uniLoc;
 
     // How close the device has to be to Heriot-Watt to be considered within the tracking area.
-    public static final double UNI_PERMITTED_DISTANCE = 300;
+    public static final double UNI_PERMITTED_DISTANCE = 350;
+
+    // List of circle areas that even if the user is within the tracking zone, they will not be tracked (halls)
+    public List<Pair<Location, Integer>> excludedLocations = new ArrayList<>();
 
     // Date at which the app functionality will forcibly stop working. (17th of April 2023 at 3:14AM GMT)
     // The app may be shut down at an earlier date, however, the date below cannot be changed on the server-side.
@@ -100,8 +106,17 @@ public class LocationService extends Service implements SensorEventListener {
 
         // Location close to Heriot-Watt main reception
         uniLoc = new Location("");
-        uniLoc.setLatitude(55.909169);
-        uniLoc.setLongitude(-3.321470);
+        // 55.91069233323829, -3.3209063483970733
+        uniLoc.setLatitude(55.91069233323829);
+        uniLoc.setLongitude(-3.3209063483970733);
+
+        // Mark halls as excluded locations where users shall not be tracked
+
+        // George BBurnett, Lord Thomson, Robin Smith, Anna Macleod, Mary Fergusson, and Murial Spark halls.
+        excludedLocations.add(new Pair<>(Utils.generateLocation(55.907994707708575f, -3.3265917927534145f), 200));
+
+        // Christina Miller, Lord Home, Robert Bryson halls.
+        excludedLocations.add(new Pair<>(Utils.generateLocation(55.906359220871316f, -3.3238933937540454f), 210));
 
         settingsFile = new File(getFilesDir().getAbsolutePath() + File.separator + "settings.json");
 

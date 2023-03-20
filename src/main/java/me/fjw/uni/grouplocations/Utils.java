@@ -1,5 +1,7 @@
 package me.fjw.uni.grouplocations;
 
+import android.location.Location;
+
 import java.io.File;
 
 public class Utils {
@@ -12,5 +14,12 @@ public class Utils {
         }
 
         f.delete();
+    }
+
+    public static Location generateLocation(float latitude, float longitude) {
+        Location loc = new Location("");
+        loc.setLatitude(latitude);
+        loc.setLongitude(longitude);
+        return loc;
     }
 }
