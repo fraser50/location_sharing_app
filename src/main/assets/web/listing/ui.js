@@ -80,6 +80,20 @@ function renderMembers(content, group, members) {
     //addMapMarkers(group.groupid);
     content.innerHTML = "";
 
+    createBackButton(content, function() {
+        loadGroups(content);
+    });
+
+    var settingsButton = document.createElement("button");
+    settingsButton.className = "optionButton";
+    settingsButton.innerText = "Settings";
+
+    settingsButton.onclick = function() {
+        renderGroupSettings(content, group, members);
+    };
+
+    content.appendChild(settingsButton);
+
     var invitePageButton = document.createElement("button");
     invitePageButton.innerText = "+";
     invitePageButton.className = "createButton";
@@ -89,10 +103,6 @@ function renderMembers(content, group, members) {
     };
 
     content.appendChild(invitePageButton);
-
-    createBackButton(content, function() {
-        loadGroups(content);
-    });
 
     var heading = document.createElement("h2");
     heading.innerText = "Members - " + group.groupname;
@@ -136,6 +146,39 @@ function renderInvitePage(content, groupID) {
         }
 
     }, function() {});
+}
+
+function renderGroupSettings(content, group, members) {
+    content.innerHTML = "";
+
+    document.getElementById("mapHolder").className = "hiddenDiv";
+    content.className = "contentFullHeight";
+
+    createBackButton(content, function() {
+        document.getElementById("mapHolder").className = "";
+        content.className = "content";
+        renderMembers(content, group, members);
+    });
+
+    var leaveButton = document.createElement("button");
+    leaveButton.className = "optionButton";
+    leaveButton.innerText = "Leave Group";
+
+    leaveButton.onclick = function() {
+        createRequest(sharedData.getAPI(), "/leavegroup/" + group.groupid, null, function(req) {
+            var rsp = req.target.response;
+            var decodedResponse = JSON.parse(rsp);
+            
+            if (decodedResponse.status == "success") {
+                document.getElementById("mapHolder").className = "";
+                content.className = "content";
+                loadGroups(content);
+            }
+
+        }, function() {});
+    };
+
+    content.appendChild(leaveButton);
 }
 
 function renderGroupAddOptions(content) {
