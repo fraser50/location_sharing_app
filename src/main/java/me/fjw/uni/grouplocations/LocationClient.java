@@ -61,6 +61,10 @@ public class LocationClient extends WebSocketClient {
 
     private long lastLocationSend = 0L;
 
+    private boolean currentlyTracked = false;
+
+    private long lastLocationCheck = 0L;
+
     public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext, LocationService service) {
         super(uri);
         this.authKey = authKey;
@@ -83,6 +87,47 @@ public class LocationClient extends WebSocketClient {
 
                 lastLatitudes[0] = latitude;
                 lastLongitudes[0] = longitude;
+
+                long currentTime = System.currentTimeMillis();
+
+                if (currentTime - lastLocationCheck > 1000 * 60) {
+                    boolean onCampus = isLocationOnCampus(latitude, longitude);
+                    boolean shouldNotify = false;
+                    String notifyTitle = null;
+                    String notifyDesc = null;
+
+                    if (onCampus || service.isExtendedTracking() && !currentlyTracked) {
+                        shouldNotify = true;
+                        notifyTitle = "You have entered the tracking zone";
+                        notifyDesc = "People in your groups can now see your location.";
+                        currentlyTracked = true;
+                    }
+
+                    if (!(onCampus || service.isExtendedTracking()) && currentlyTracked) {
+                        shouldNotify = true;
+                        notifyTitle = "You have left the tracking zone";
+                        notifyDesc = "Nobody else can see your location updates";
+                        currentlyTracked = false;
+                    }
+
+                    if (shouldNotify) {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            Notification n = new Notification.Builder(service.getApplicationContext(), NotificationChannel.DEFAULT_CHANNEL_ID)
+                                    .setContentTitle(notifyTitle)
+                                    .setContentText(notifyDesc)
+                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                    .setContentIntent(null)
+                                    .setTicker("Ticker")
+                                    .setChannelId("GroupLocChannel")
+                                    .build();
+
+                            NotificationManager notificationManager = (NotificationManager) service.getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                            notificationManager.notify(3, n);
+                        }
+                    }
+
+                    lastLocationCheck = currentTime;
+                }
 
                 Log.d("ws_client", "Updating location");
             }
@@ -174,12 +219,12 @@ public class LocationClient extends WebSocketClient {
         long currentTime = System.currentTimeMillis();
 
         if (currentTime - lastLocationSend > 1000 * 60 * 20) {
-            Log.d("ws_client", "Sending notification");
+            Log.d("ws_client", "Sending tracking notification");
             // Notify user that their location is being tracked
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 Notification n = new Notification.Builder(service.getApplicationContext(), NotificationChannel.DEFAULT_CHANNEL_ID)
-                        .setContentTitle("Your location may have been seen")
-                        .setContentText("Somebody in your groups may have seen your location on their map.")
+                        .setContentTitle("Your location has been shared recently")
+                        .setContentText("Somebody in one of your groups has the map open.")
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
                         .setContentIntent(null)
                         .setTicker("Ticker")
