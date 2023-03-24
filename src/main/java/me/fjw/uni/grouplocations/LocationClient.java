@@ -3,6 +3,9 @@ package me.fjw.uni.grouplocations;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.GpsStatus;
@@ -16,6 +19,7 @@ import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import org.java_websocket.client.WebSocketClient;
@@ -41,6 +45,9 @@ public class LocationClient extends WebSocketClient {
     private volatile float latitude;
     private volatile float longitude;
 
+    private volatile float[] lastLatitudes = new float[3];
+    private volatile float[] lastLongitudes = new float[3];
+
     private LocationListener locationHandler;
 
     public static final int IDLE_LOCATION_INTERVAL = 30000;
@@ -51,6 +58,8 @@ public class LocationClient extends WebSocketClient {
     private boolean activeTracking = false;
 
     private String receiveMessage;
+
+    private long lastLocationSend = 0L;
 
     public LocationClient(URI uri, String authKey, LocationManager manager, Context baseContext, LocationService service) {
         super(uri);
@@ -65,6 +74,15 @@ public class LocationClient extends WebSocketClient {
             public void onLocationChanged(@NonNull Location location) {
                 latitude = (float) location.getLatitude();
                 longitude = (float) location.getLongitude();
+
+                lastLatitudes[2] = lastLatitudes[1];
+                lastLongitudes[2] = lastLongitudes[2];
+
+                lastLatitudes[1] = lastLatitudes[0];
+                lastLongitudes[1] = lastLongitudes[0];
+
+                lastLatitudes[0] = latitude;
+                lastLongitudes[0] = longitude;
 
                 Log.d("ws_client", "Updating location");
             }
@@ -96,13 +114,13 @@ public class LocationClient extends WebSocketClient {
         return fullReq.toString();
     }
 
-    public void sendLocationUpdate(float latitude, float longitude) {
-        // Check if user has disabled location tracking
-        if (!service.isLocationServicesEnabled()) {
-            Log.d("ws_client", "Refusing to send location, user has disabled sharing");
-            return;
-        }
-
+    /**
+     * This method takes a latitude and longitude and returns true if the location is on campus.
+     * @param latitude
+     * @param longitude
+     * @return
+     */
+    public boolean isLocationOnCampus(float latitude, float longitude) {
         // Check if location tracking within area
         Location currentLoc = new Location("");
         currentLoc.setLatitude(latitude);
@@ -124,18 +142,56 @@ public class LocationClient extends WebSocketClient {
             }
         }
 
+        return withinUni;
+    }
+
+    public void sendLocationUpdate(float latitude, float longitude) {
+        // Check if user has disabled location tracking
+        if (!service.isLocationServicesEnabled()) {
+            Log.d("ws_client", "Refusing to send location, user has disabled sharing");
+            return;
+        }
+
+        boolean withinUni = isLocationOnCampus(latitude, longitude);
+
         // Refuse to share location if device not on HW campus and they haven't opted into extended tracking
         if (!withinUni && !service.isExtendedTracking()) {
             JSONObject locationReq = new JSONObject();
             try {
                 locationReq.put("onCampus", false);
-                send(generateFullRequest("location", locationReq));
+                //send(generateFullRequest("location", locationReq));
 
             } catch (JSONException e) {
                 Log.d("ws_client", "JSON Error on sending location refusal");
             }
-            return;
+            //return;
         }
+
+        Location currentLoc = new Location("");
+        currentLoc.setLatitude(latitude);
+        currentLoc.setLongitude(longitude);
+
+        long currentTime = System.currentTimeMillis();
+
+        if (currentTime - lastLocationSend > 1000 * 60 * 20) {
+            Log.d("ws_client", "Sending notification");
+            // Notify user that their location is being tracked
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                Notification n = new Notification.Builder(service.getApplicationContext(), NotificationChannel.DEFAULT_CHANNEL_ID)
+                        .setContentTitle("Your location may have been seen")
+                        .setContentText("Somebody in your groups may have seen your location on their map.")
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentIntent(null)
+                        .setTicker("Ticker")
+                        .setChannelId("GroupLocChannel")
+                        .build();
+
+                NotificationManager notificationManager = (NotificationManager) service.getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(2, n);
+            }
+        }
+
+        lastLocationSend = currentTime;
 
         JSONObject locationReq = new JSONObject();
         try {
@@ -146,7 +202,13 @@ public class LocationClient extends WebSocketClient {
             locationReq.put("distance", currentLoc.distanceTo(service.uniLoc));
             locationReq.put("date", new Date().toGMTString());
 
-            send(generateFullRequest("location", locationReq));
+            for (int i=0; i<3; i++) {
+                boolean prevPosWithinUni = service.isExtendedTracking() || isLocationOnCampus(lastLatitudes[i], lastLongitudes[i]);
+                locationReq.put("prevLocLat" + i, prevPosWithinUni ? lastLatitudes[i] : 0);
+                locationReq.put("prevLocLong" + i, prevPosWithinUni ? lastLongitudes[i] : 0);
+            }
+
+            //send(generateFullRequest("location", locationReq));
 
         } catch (JSONException e) {
             Log.d("ws_client", "JSON Error on sending location");
@@ -281,5 +343,20 @@ public class LocationClient extends WebSocketClient {
 
     public String getReceiveMessage() {
         return receiveMessage;
+    }
+
+    public WebViewPair<WebViewFloat, WebViewFloat> getCoordinates() {
+        Log.d("ws_client", "Latitude: " + latitude + " | Longitude: " + longitude);
+        return new WebViewPair<>(new WebViewFloat(latitude), new WebViewFloat(longitude));
+    }
+
+    public ArrayWrapper<WebViewPair<WebViewFloat, WebViewFloat>> getLastLocations() {
+        WebViewPair<WebViewFloat, WebViewFloat>[] webPrevPositions = new WebViewPair[lastLatitudes.length];
+
+        for (int i=0; i< lastLatitudes.length; i++) {
+            webPrevPositions[i] = new WebViewPair<>(new WebViewFloat(lastLatitudes[i]), new WebViewFloat(lastLongitudes[i]));
+        }
+
+        return new ArrayWrapper<>(webPrevPositions);
     }
 }

@@ -26,6 +26,9 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -90,7 +93,7 @@ import java.util.zip.ZipFile;
 
 public class MainActivity extends AppCompatActivity {
     // Whether the app should always update, regardless of version (useful for development)
-    public static final boolean ALWAYS_UPDATE = true;
+    public static final boolean ALWAYS_UPDATE = false;
     private Camera cam;
     private ProcessCameraProvider provider;
 
@@ -120,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAPI() {
-            return "https://localuni.fjw.me";
+            return "https://uni.fjw.me";
         }
 
         @JavascriptInterface
@@ -262,6 +265,20 @@ public class MainActivity extends AppCompatActivity {
         public void setMessageReceived(String message) {
             messageReceived = message;
         }
+
+        @JavascriptInterface
+        public ArrayWrapper<WebViewPair<WebViewFloat, WebViewFloat>> getPreviousLocations() {
+            if (service.getService().getClient() == null) return null;
+
+            return service.getService().getClient().getLastLocations();
+        }
+
+        @JavascriptInterface
+        public WebViewPair<WebViewFloat, WebViewFloat> getCoordinates() {
+            if (service.getService().getClient() == null) return null;
+
+            return service.getService().getClient().getCoordinates();
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "MissingPermission"})
@@ -269,6 +286,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel("GroupLocChannel", "Group Locations", NotificationManager.IMPORTANCE_DEFAULT);
+        }
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        //Notification n = new Notification.Builder(this, NotificationChannel.DEFAULT_CHANNEL_ID)
+        //        .setContentTitle("Group Locations")
+        //        .setContentText("This is the service used by the university location tracking service to update your location in the background. Settings can be changed by opening the Group Locations app and pressing the settings button at the top-left.")
+        //        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        //        .setContentIntent(pi)
+        //        .setTicker("Ticker")
+        //        .setChannelId("GroupLocChannel")
+        //        .build();
 
         data = new SharedData();
         data.activity = this;
@@ -342,7 +379,7 @@ public class MainActivity extends AppCompatActivity {
         updateUI(new Runnable() {
             @Override
             public void run() {
-                optionsView.loadUrl("file://" + new File(getFilesDir() + File.separator + "ui" + File.separator + "index.html").getAbsolutePath());
+                loadMainPage();
             }
         });
 
@@ -449,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        Log.d("main_activity", "App closed");
+        Log.d("main_activity", "App stopped");
         super.onStop();
         WebView options = findViewById(R.id.options);
         options.onPause();
@@ -467,6 +504,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        Log.d("main_activity", "App paused");
         super.onPause();
 
         WebView options = findViewById(R.id.options);
@@ -476,22 +514,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d("main_activity", "App resumed");
         super.onResume();
 
         WebView options = findViewById(R.id.options);
         options.onResume();
+        options.resumeTimers();
     }
 
     @Override
     protected void onRestart() {
+        Log.d("main_activity", "App restarted");
         super.onRestart();
 
         WebView options = findViewById(R.id.options);
         options.onResume();
+        options.resumeTimers();
     }
 
     @Override
     protected void onDestroy() {
+        Log.d("main_activity", "App destroyed");
         super.onDestroy();
 
         WebView options = findViewById(R.id.options);
@@ -515,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 optionsView.removeJavascriptInterface("settings");
                                 optionsView.removeJavascriptInterface("closer");
-                                optionsView.loadUrl("file://" + new File(getFilesDir() + File.separator + "ui" + File.separator + "index.html").getAbsolutePath());
+                                loadMainPage();
                             }
                         });
                     }
@@ -527,7 +570,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * This method will update the UI and will notfy the given callback.
+     * This method will update the UI and will notify the given callback.
      * @param callback The callback to be called when the UI is updated successfully. This will run on the UI thread.
      */
     public void updateUI(Runnable callback) {
@@ -535,6 +578,8 @@ public class MainActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void run() {
+                // This is true if an error occurs during the zip extraction process
+                boolean errorCatastrophic = false;
                 try {
                     URL url = new URL(data.getAPI() + "/versioninfo");
                     URLConnection conn = url.openConnection();
@@ -579,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // If the remote version is newer, update
 
-                    if (remoteVersion > currentVersion || ALWAYS_UPDATE) {
+                    if (remoteVersion > currentVersion || ALWAYS_UPDATE || !new File(getFilesDir() + File.separator + "ui").exists()) {
                         Log.d("ui_updater", "Version " + remoteVersion + " is newer than " + currentVersion);
                         File zipFile = new File(getFilesDir() + File.separator + "ui.zip");
                         if (zipFile.exists()) zipFile.delete();
@@ -594,6 +639,8 @@ public class MainActivity extends AppCompatActivity {
 
                         istream.close();
                         ostream.close();
+
+                        errorCatastrophic = true;
 
                         // Delete existing installation
 
@@ -659,8 +706,31 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(callback);
 
                 } catch (IOException e) {
-                    // TODO: Error log
+                    Log.e("ui_updater", "IO exception occurred", e);
+
+                    if (errorCatastrophic) {
+                        Log.d("ui_updater", "Error has resulted in issues during file extraction, displaying error page");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                WebView options = findViewById(R.id.options);
+
+                                options.loadUrl("file:///android_asset/updateissue.html");
+                            }
+                        });
+
+                        // Delete UI folder
+                        File uiFolder = new File(getFilesDir() + File.separator + "ui");
+
+                        Utils.deleteEverything(uiFolder);
+
+                    } else {
+                        runOnUiThread(callback);
+                    }
+
                 } catch (JSONException e) {
+                    Log.e("ui_updater", "Version response from server was malformed", e);
+                    runOnUiThread(callback);
                 }
             }
         }.start();
@@ -670,5 +740,35 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    public void loadMainPage() {
+        WebView options = findViewById(R.id.options);
+        File uiFolder = new File(getFilesDir() + File.separator + "ui");
+
+        if (uiFolder.exists()) {
+            options.removeJavascriptInterface("updateManager");
+            options.loadUrl("file://" + new File(getFilesDir() + File.separator + "ui" + File.separator + "index.html").getAbsolutePath());
+
+        } else {
+            options.addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public void update() {
+                    updateUI(new Runnable() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    loadMainPage();
+                                }
+                            });
+                        }
+                    });
+                }
+
+            }, "updateManager");
+            options.loadUrl("file:///android_asset/updateissue.html");
+        }
     }
 }

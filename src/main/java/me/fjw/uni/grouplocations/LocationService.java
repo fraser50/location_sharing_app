@@ -43,7 +43,7 @@ public class LocationService extends Service implements SensorEventListener {
     // Has the user opted in to more detailed location tracking (outside of HW campus)?
     private boolean extendedTracking = false;
 
-    private static final String WS_API = "wss://localuni.fjw.me";
+    private static final String WS_API = "wss://uni.fjw.me";
 
     private File settingsFile;
 
