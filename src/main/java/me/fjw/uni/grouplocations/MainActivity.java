@@ -38,10 +38,13 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.FileUtils;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -279,6 +282,11 @@ public class MainActivity extends AppCompatActivity {
 
             return service.getService().getClient().getCoordinates();
         }
+
+        @JavascriptInterface
+        public String getAppType() {
+            return "unworkable";
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "MissingPermission"})
@@ -287,8 +295,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Intent disableOptimisations = new Intent();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+            if (!powerManager.isIgnoringBatteryOptimizations("me.fjw.uni.grouplocations")) {
+                Log.d("main_activity", "Requesting to ignore battery optimisations");
+                disableOptimisations.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                disableOptimisations.setData(Uri.parse("package:me.fjw.uni.grouplocations"));
+                startActivity(disableOptimisations);
+            }
+        }
+
         NotificationChannel channel = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             channel = new NotificationChannel("GroupLocChannel", "Group Locations", NotificationManager.IMPORTANCE_DEFAULT);
         }
 

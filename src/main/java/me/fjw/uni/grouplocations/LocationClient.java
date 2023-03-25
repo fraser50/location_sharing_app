@@ -88,6 +88,12 @@ public class LocationClient extends WebSocketClient {
                 lastLatitudes[0] = latitude;
                 lastLongitudes[0] = longitude;
 
+                try {
+                    send(generateFullRequest("locudate", new JSONObject()));
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+
                 long currentTime = System.currentTimeMillis();
 
                 if (currentTime - lastLocationCheck > 1000 * 60) {
@@ -204,7 +210,7 @@ public class LocationClient extends WebSocketClient {
             JSONObject locationReq = new JSONObject();
             try {
                 locationReq.put("onCampus", false);
-                //send(generateFullRequest("location", locationReq));
+                send(generateFullRequest("location", locationReq));
 
             } catch (JSONException e) {
                 Log.d("ws_client", "JSON Error on sending location refusal");
@@ -362,11 +368,13 @@ public class LocationClient extends WebSocketClient {
                     //return;
                 }
 
+                Log.d("ws_client", "location update rate: " + (motionDetected ? ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL));
+
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, motionDetected ?
-                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL, 0.5f, locationHandler);
+                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL, 0f, locationHandler);
 
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, motionDetected ?
-                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0.5f, locationHandler);
+                        ACTIVE_LOCATION_INTERVAL : IDLE_LOCATION_INTERVAL,0f, locationHandler);
 
                 trackerActive = true;
             }

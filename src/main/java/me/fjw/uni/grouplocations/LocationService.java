@@ -14,6 +14,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 
@@ -256,6 +257,8 @@ public class LocationService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        if (client == null) return;
+
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             float[] values = event.values;
 
