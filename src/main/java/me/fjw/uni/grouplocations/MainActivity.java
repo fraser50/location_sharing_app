@@ -195,35 +195,6 @@ public class MainActivity extends AppCompatActivity {
             return longitude;
         }
 
-        // TODO: Actually check permissions
-        /*@SuppressLint("MissingPermission")
-        public void setupRequestLocation() {
-            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            manager.requestLocationUpdates("gps", 1000, 10, new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
-                }
-
-                @Override
-                public void onProviderEnabled(@NonNull String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(@NonNull String provider) {
-
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-            });
-        }*/
-
         @JavascriptInterface
         public void scanQRCode() {
             runOnUiThread(new Runnable() {
@@ -336,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -363,15 +335,6 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(channel);
         }
-
-        //Notification n = new Notification.Builder(this, NotificationChannel.DEFAULT_CHANNEL_ID)
-        //        .setContentTitle("Group Locations")
-        //        .setContentText("This is the service used by the university location tracking service to update your location in the background. Settings can be changed by opening the Group Locations app and pressing the settings button at the top-left.")
-        //        .setSmallIcon(R.drawable.ic_launcher_foreground)
-        //        .setContentIntent(pi)
-        //        .setTicker("Ticker")
-        //        .setChannelId("GroupLocChannel")
-        //        .build();
 
         data = new SharedData();
         data.activity = this;
@@ -432,14 +395,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Provides access to the SharedData instance.
         optionsView.addJavascriptInterface(data, "sharedData");
-
-        //optionsView.loadUrl("file:///android_asset/web/listing/index.html");
-
-        //LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        //Log.d("providers", "Printing providers:");
-        //for (String provider : manager.getAllProviders()) {
-        //    Log.d("providers", provider);
-        //}
 
         // Request an update, and after completion, load the main page.
         updateUI(new Runnable() {

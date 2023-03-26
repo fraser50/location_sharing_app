@@ -215,7 +215,7 @@ public class LocationClient extends WebSocketClient {
             } catch (JSONException e) {
                 Log.d("ws_client", "JSON Error on sending location refusal");
             }
-            //return;
+            return;
         }
 
         Location currentLoc = new Location("");
@@ -259,7 +259,7 @@ public class LocationClient extends WebSocketClient {
                 locationReq.put("prevLocLong" + i, prevPosWithinUni ? lastLongitudes[i] : 0);
             }
 
-            //send(generateFullRequest("location", locationReq));
+            send(generateFullRequest("location", locationReq));
 
         } catch (JSONException e) {
             Log.d("ws_client", "JSON Error on sending location");
