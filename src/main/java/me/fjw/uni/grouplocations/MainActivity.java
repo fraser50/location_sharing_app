@@ -258,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
             return messageReceived;
         }
 
+        @JavascriptInterface
         public void sendMessage(String message) {
             try {
                 service.sendWS(message);
@@ -312,6 +313,25 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             });
+        }
+
+        @JavascriptInterface
+        public int getVersion() {
+            File versionFile = new File(getFilesDir().getAbsolutePath() + File.separator + "version.txt");
+            int currentVersion = -1;
+
+            if (versionFile.exists()) {
+                Scanner scan = null;
+                try {
+                    scan = new Scanner(versionFile);
+                    currentVersion = scan.nextInt();
+                    scan.close();
+                } catch (FileNotFoundException e) {
+
+                }
+            }
+
+            return currentVersion;
         }
     }
 

@@ -313,6 +313,14 @@ public class LocationClient extends WebSocketClient {
             JSONObject body = fullReq.getJSONObject("body");
 
             switch (type) {
+                case "auth":
+                    if (body.getString("status").equals("success")) {
+                        Log.d("ws_client", "Authentication successful!");
+
+                    } else {
+                        Log.d("ws_client", "Authentication failure, closing connection.");
+                        close();
+                    }
                 case "location_request":
                     //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     //    return;

@@ -8,6 +8,22 @@
         <script>
             markers = [];
             function page_load() {
+                setInterval(function() {
+                    createRequest(sharedData.getAPI(), "/versioninfo", null, function(req) {
+                        var rsp = req.target.response;
+                        var decodedResponse = JSON.parse(rsp);
+
+                        if (decodedResponse.status == "success") {
+                            var newestVersion = decodedResponse.version;
+                            var currentVersion = sharedData.getVersion();
+                            if (newestVersion > currentVersion) {
+                                sharedData.forceUpdate();
+                            }
+                        }
+                    
+                    }, function() {});
+
+                }, 30000);
                 var content = document.getElementById("content");
 
                 if (sharedData.getAuthKey() == "") {
