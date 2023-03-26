@@ -104,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String messageReceived;
 
+    private long lastForcedUpdate = 0L;
+
     // This class is used to store methods that are callable from inside the WebView.
     public class SharedData {
         public MainActivity activity;
@@ -285,11 +287,35 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAppType() {
-            return "unworkable";
+            return "v1";
+        }
+
+        @JavascriptInterface
+        public void forceUpdate() {
+
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - lastForcedUpdate < 1000 * 60 * 10) {
+                Log.d("main_activity", "Refusing to force UI update");
+                return;
+            }
+
+            lastForcedUpdate = currentTime;
+            updateUI(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadMainPage();
+                        }
+                    });
+                }
+            });
         }
     }
 
-    @SuppressLint({"SetJavaScriptEnabled", "MissingPermission"})
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -730,19 +756,18 @@ public class MainActivity extends AppCompatActivity {
 
                     if (errorCatastrophic) {
                         Log.d("ui_updater", "Error has resulted in issues during file extraction, displaying error page");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                WebView options = findViewById(R.id.options);
-
-                                options.loadUrl("file:///android_asset/updateissue.html");
-                            }
-                        });
 
                         // Delete UI folder
                         File uiFolder = new File(getFilesDir() + File.separator + "ui");
 
                         Utils.deleteEverything(uiFolder);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                loadMainPage();
+                            }
+                        });
 
                     } else {
                         runOnUiThread(callback);
