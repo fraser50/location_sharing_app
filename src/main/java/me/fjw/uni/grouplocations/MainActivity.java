@@ -486,7 +486,6 @@ public class MainActivity extends AppCompatActivity {
         }, getMainExecutor());
         previewV.setVisibility(View.VISIBLE);
         findViewById(R.id.cancelBtn).setVisibility(View.VISIBLE);
-        //previewV.setController(camControl);
     }
 
     @Override

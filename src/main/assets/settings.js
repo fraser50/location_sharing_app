@@ -42,7 +42,7 @@ function renderSettings(content) {
 
     content.appendChild(generateStatus("Extended tracking"), settings.isExtendedTracking());
 
-    var description = document.createElement("h3");
+    var description = document.createElement("p");
     description.innerText = "Extended tracking will only be enabled if you are participating in study 2. Study 2 involves tracking outside of the HW campus. The first option, location tracking, states whether your location on the campus may be tracked. Turning this off will stop the app from sending location updates to the server.";
 
     content.appendChild(description);
