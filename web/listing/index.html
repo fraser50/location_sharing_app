@@ -46,8 +46,18 @@
                     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
 
-                //var userMarker = L.marker([0, 0]);
-                //userMarker.addTo(map);
+                var userMarker = L.circleMarker(L.latLng(0, 0));
+                userMarker.addTo(map);
+
+                setInterval(function() {
+                    var coordinatePair = sharedData.getCoordinates();
+                    if (coordinatePair != null) {
+                        var latitude = coordinatePair.getFirst().get();
+                        var longitude = coordinatePair.getSecond().get();
+
+                        userMarker.setLatLng(L.latLng(latitude, longitude));
+                    }
+                }, 1000);
 
             }
 
