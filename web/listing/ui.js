@@ -130,7 +130,7 @@ function renderInvitePage(content, groupID) {
     document.getElementById("mapHolder").className = "hiddenDiv";
     content.className = "contentFullHeight";
 
-    createRequest(sharedData.getAPI(), "/createinvite/" + groupID, null, function(req) {
+    createRequest(sharedData.getAPI(), "/createinvite/" + groupID, {}, function(req) {
         var rsp = req.target.response;
 
         var decodedResponse = JSON.parse(rsp);
