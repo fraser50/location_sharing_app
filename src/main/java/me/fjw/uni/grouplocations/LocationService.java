@@ -14,7 +14,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 
@@ -25,14 +24,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-
-import javax.net.ssl.SSLSocketFactory;
 
 public class LocationService extends Service implements SensorEventListener {
     // This is the thread that runs the background tasks
