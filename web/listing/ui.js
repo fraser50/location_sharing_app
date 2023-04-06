@@ -311,7 +311,8 @@ function renderJoinGroupForm(content) {
 
             } else {
                 console.log("Failure");
-                alert("That group code is not valid!");
+                heading.innerText = "Error Joining";
+                heading.style = "color: red";
             }
         }, function() {});
     }
