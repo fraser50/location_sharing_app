@@ -298,7 +298,7 @@ function renderJoinGroupForm(content) {
 
     function joinGroup(code) {
         // TODO: Set nickname
-        createRequest(sharedData.getAPI(), "/joingroup/" + code, null, function(req) {
+        createRequest(sharedData.getAPI(), "/joingroup/" + code, {}, function(req) {
             console.log("joinGroup called");
             var rsp = req.target.response;
             var decodedResponse = JSON.parse(rsp);
