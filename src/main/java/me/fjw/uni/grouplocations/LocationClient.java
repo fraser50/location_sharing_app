@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -84,11 +85,11 @@ public class LocationClient extends WebSocketClient {
                 lastLatitudes[0] = latitude;
                 lastLongitudes[0] = longitude;
 
-                try {
+                /*try {
                     send(generateFullRequest("locudate", new JSONObject()));
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+
+                } catch (WebsocketNotConnectedException e) {}*/
 
                 long currentTime = System.currentTimeMillis();
 
@@ -403,7 +404,7 @@ public class LocationClient extends WebSocketClient {
     }
 
     public WebViewPair<WebViewFloat, WebViewFloat> getCoordinates() {
-        Log.d("ws_client", "Latitude: " + latitude + " | Longitude: " + longitude);
+        //Log.d("ws_client", "Latitude: " + latitude + " | Longitude: " + longitude);
         return new WebViewPair<>(new WebViewFloat(latitude), new WebViewFloat(longitude));
     }
 
